@@ -1,9 +1,11 @@
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ShopContextProvider from "./Context/ShopContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { BrowserRouter } from "react-router-dom";
+import Providers from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,22 +23,24 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} bg-[#050505] ${geistMono.variable} antialiased`}
       >
-        <BrowserRouter>
-          <ShopContextProvider>
-            <Navbar/>
-            <div className="px-12">
-            {children}
-            </div>
-            <Footer/>
-            
-          </ShopContextProvider>
-          </BrowserRouter>
+        <Providers>
+
+            <ShopContextProvider>
+              <Navbar />
+              <div className="px-12">
+                {children}
+              </div>
+              <Footer />
+
+            </ShopContextProvider>
+        </Providers>
+
       </body>
     </html>
   );

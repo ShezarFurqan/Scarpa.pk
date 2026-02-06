@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Lock, Mail, Loader2, ShieldCheck } from 'lucide-react'
+import AdminLayout from "../layout";
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -46,6 +47,7 @@ export default function AdminLoginPage() {
 
 
   return (
+    <AdminLayout>
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 font-sans">
       <div className="w-full max-w-md animate-in fade-in zoom-in duration-500">
 
@@ -122,5 +124,6 @@ export default function AdminLoginPage() {
         </p>
       </div>
     </div>
+    </AdminLayout>
   )
 }

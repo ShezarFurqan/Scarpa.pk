@@ -13,7 +13,7 @@ export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
     const [landingPage, setLandingPage] = useState({})
-    const [token, setToken] = useState(localStorage.getItem('token'));
+    const [token, setToken] = useState(null);
     const [user, setUser] = useState(null);
     const [products, setProducts] = useState(null);
     const [cartItems, setCartItems] = useState([]);
@@ -217,7 +217,6 @@ const ShopContextProvider = (props) => {
         setToken,
         user,
         setUser,
-        location,
         products,
         addToCart,
         removeFromCart,

@@ -20,7 +20,6 @@ const NAV_ITEMS = [
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Products', href: '/admin/products', icon: Package },
-  { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
 ]
 
 export default function AdminLayout({ children }) {
