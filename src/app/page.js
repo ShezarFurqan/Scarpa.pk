@@ -13,7 +13,7 @@ export default function Home() {
     <div className="flex flex-col">
       <Hero />
       <hr className="w-full max-w-7xl mx-auto my-16 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-      <ProductsCollection/>
+      <ProductsCollection collectionName="New Collection" />
       <hr className="w-full max-w-7xl mx-auto my-16 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
        <CategorySection/>
       <hr className="w-full max-w-7xl mx-auto my-16 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />

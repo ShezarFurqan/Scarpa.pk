@@ -12,14 +12,16 @@ import {
   Menu,
   X,
   Bell,
-  Search
+  Search,
+  SquarePen
 } from 'lucide-react'
 
 const NAV_ITEMS = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Users', href: '/admin/users', icon: Users },
+  // { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Products', href: '/admin/products', icon: Package },
+  { name: 'Customization', href: '/admin/customization', icon: SquarePen },
 ]
 
 export default function AdminLayout({ children }) {
