@@ -43,6 +43,10 @@ export default function OrdersPage() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(()=>{
+    console.log(orders)
+  },[orders])
+
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       const orderRef = doc(db, "orders", orderId);

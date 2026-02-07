@@ -12,6 +12,7 @@ import {
   collection, addDoc, query, where,
   onSnapshot, orderBy, serverTimestamp
 } from 'firebase/firestore';
+import RelatedProducts from '@/app/components/RelatedProducts';
 
 export default function ProductDetailPage({ params }) {
   // 1. DYNAMIC PARAM & CONTEXT
@@ -103,7 +104,7 @@ export default function ProductDetailPage({ params }) {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-white selection:text-black">
-      <div className="container mx-auto px-6 lg:px-12 py-12 lg:py-24">
+      <div className="container mx-auto px-6 lg:px-12 mb-32 py-12 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-24 items-start">
 
           {/* IMAGE GALLERY */}
@@ -257,6 +258,8 @@ export default function ProductDetailPage({ params }) {
             </div>
           </div>
         </div>
+
+        <RelatedProducts currentProduct={product} allProducts={products}/>
 
         {/* REVIEWS SECTION UNCHANGED */}
         <div className="mt-32 border-t border-white/5 pt-24">

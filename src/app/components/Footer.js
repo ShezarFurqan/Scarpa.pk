@@ -3,13 +3,15 @@ import {
   Facebook,
   Instagram,
   Twitter,
-  ArrowRight,
-  Phone
+  Youtube,
+  Phone,
+  Mail,
+  MapPin,
+  MessageCircle
 } from 'lucide-react';
 import { useContext } from 'react';
 import { ShopContext } from '../Context/ShopContext';
 import { usePathname } from "next/navigation";
-
 
 export default function Footer() {
   const { location } = useContext(ShopContext);
@@ -18,88 +20,86 @@ export default function Footer() {
   if (pathname === "/login" || pathname.includes("/admin")) return null;
 
   return (
-    <footer className="bg-black text-white py-12 relative">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Main Grid: Mobile (1 col), Tablet (2 cols), Desktop (4 cols) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+    <footer className="bg-[#050505] text-white py-16 lg:py-24 relative overflow-hidden">
+      {/* Top Border Accent */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
           
-          {/* Column 1: Brand */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white tracking-tighter">ROCK CLIMB</h2>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-              Premium footwear for the modern Pakistani gentleman. Quality
-              craftsmanship meets contemporary design.
+          {/* Column 1: Brand Identity */}
+          <div className="space-y-8">
+            <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic">
+              ROCK <span className="text-white/20">CLIMB</span>
+            </h2>
+            <p className="text-gray-500 text-sm leading-relaxed font-light max-w-xs">
+              Crafting excellence for the modern Pakistani pulse. Every step in a Rock Climb pair is a statement of heritage and contemporary luxury.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="bg-gray-800 p-2.5 rounded-full hover:bg-gray-700 transition-colors">
-                <Facebook size={18} className="text-white" />
-              </a>
-              <a href="#" className="bg-gray-800 p-2.5 rounded-full hover:bg-gray-700 transition-colors">
-                <Instagram size={18} className="text-white" />
-              </a>
-              <a href="#" className="bg-gray-800 p-2.5 rounded-full hover:bg-gray-700 transition-colors">
-                <Twitter size={18} className="text-white" />
-              </a>
+            <div className="flex items-center gap-3">
+              {[
+                { Icon: Facebook, link: "https://www.facebook.com/profile.php?id=61586042726467&rdid=LFOv1VjP4VQ0xjzS&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1Hfc7evBNP%2F%3Futm_source%3Dig%26utm_medium%3Dsocial%26utm_content%3Dlink_in_bio" },
+                { Icon: Instagram, link: "https://www.instagram.com/rc_shoes.pk/" },
+              ].map((social, i) => (
+                <a key={i} href={social.link} className="w-9 h-9 flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] hover:bg-white hover:text-black transition-all duration-500">
+                  <social.Icon size={14} />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Column 2: Shop */}
-          <div className="sm:pl-4 lg:pl-0">
-            <h3 className="text-sm font-black uppercase tracking-widest mb-6 text-white">Shop</h3>
+          {/* Column 2: Navigation */}
+          <div className="lg:pl-10">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-8 text-white/40">Shop</h3>
             <ul className="space-y-4">
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">New Arrivals</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Best Sellers</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Sale</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Collections</a></li>
+              <li><a href="/collection/newarrivals" className="text-gray-500 hover:text-white text-sm transition-all duration-300">New Arrivals</a></li>
+              <li><a href="/collection/bestsellers" className="text-gray-500 hover:text-white text-sm transition-all duration-300">Best Sellers</a></li>
+              <li><a href="/collection/sales" className="text-gray-500 hover:text-white text-sm transition-all duration-300">Outlet Sale</a></li>
+              <li><a href="/collection/allproducts" className="text-gray-500 hover:text-white text-sm transition-all duration-300">All Collections</a></li>
             </ul>
           </div>
 
-          {/* Column 3: Support */}
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-widest mb-6 text-white">Support</h3>
+          {/* Column 3: Utility */}
+          <div className="lg:pl-5">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-8 text-white/40">Support</h3>
             <ul className="space-y-4">
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Contact Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Shipping Info</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Returns</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Size Guide</a></li>
+              <li><a href="/contact" className="text-gray-500 hover:text-white text-sm transition-all duration-300">Contact Us</a></li>
+              <li><a href="/shippingInfo" className="text-gray-500 hover:text-white text-sm transition-all duration-300">Shipping Policy</a></li>
+              <li><a href="/returnpolicy" className="text-gray-500 hover:text-white text-sm transition-all duration-300">Exchange & Returns</a></li>
+              <li><a href="/sizeguide" className="text-gray-500 hover:text-white text-sm transition-all duration-300">Size Guide</a></li>
             </ul>
           </div>
 
-          {/* Column 4: Newsletter */}
-          <div className="space-y-6">
-            <h3 className="text-sm font-black uppercase tracking-widest text-white">Newsletter</h3>
-            <p className="text-gray-400 text-sm">Subscribe to get special offers and updates</p>
-            <form className="flex w-full max-w-sm">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="bg-[#111] border border-white/5 text-white px-4 py-3 flex-grow rounded-l-xl focus:outline-none focus:border-white/20 transition-all text-sm"
-              />
-              <button
-                type="submit"
-                className="bg-white text-black px-5 py-3 rounded-r-xl hover:bg-gray-200 transition-all active:scale-95"
-              >
-                <ArrowRight size={20} />
-              </button>
-            </form>
+          {/* Column 4: Reach Us */}
+          <div className="space-y-8">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Reach Us</h3>
+            <div className="space-y-5">
+              <div className="flex items-center gap-4 group cursor-default">
+                <MapPin size={16} className="text-gray-600 group-hover:text-white transition-colors" />
+                <p className="text-sm text-gray-500 font-light group-hover:text-gray-300 transition-colors">Karachi, Pakistan</p>
+              </div>
+              <a href="mailto:contact@rockclimb.pk" className="flex items-center gap-4 group">
+                <Mail size={16} className="text-gray-600 group-hover:text-white transition-colors" />
+                <p className="text-sm text-gray-500 font-light group-hover:text-gray-300 transition-colors">rockclimb.rc@gmail.com</p>
+              </a>
+              <a href="https://wa.me/923210000000" target="_blank" className="flex items-center gap-4 group">
+                <MessageCircle size={16} className="text-gray-600 group-hover:text-white transition-colors" />
+                <p className="text-sm text-gray-500 font-light group-hover:text-gray-300 transition-colors italic">WhatsApp Support</p>
+              </a>
+            </div>
           </div>
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-medium text-gray-500 uppercase tracking-widest">
-          <p className="text-center md:text-left order-2 md:order-1">© 2024 STRIDE. All rights reserved.</p>
-          <div className="flex space-x-8 order-1 md:order-2">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+        <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] order-2 md:order-1">
+            © 2026 ROCK CLIMB FOOTWEAR. Engineered in Pakistan.
+          </p>
+          <div className="flex space-x-10 order-1 md:order-2">
+            <a href="/privacy" className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] hover:text-white transition-colors">Privacy</a>
+            <a href="/terms" className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] hover:text-white transition-colors">Terms</a>
           </div>
         </div>
       </div>
-
-      {/* Help Button - Fixed for Mobile */}
-      <button className="z-50 fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl transition-all active:scale-90 flex items-center justify-center border border-white/10">
-        <Phone size={22} />
-        <span className="sr-only">Help</span>
-      </button>
     </footer>
   );
 }

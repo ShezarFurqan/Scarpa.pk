@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
 
             <ShopContextProvider>
               <Navbar />
-              <div className="px-12">
+              <div className="2xl:px-12 lg:px-10 px-2">
                 {children}
               </div>
               <Footer />

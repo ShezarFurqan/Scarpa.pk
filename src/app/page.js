@@ -5,7 +5,6 @@ import ProductsCollection from "./components/ProductCollection";
 import WhyChooseUs from "./components/WhyChooseUs";
 import CategorySection from "./components/CategorySection";
 import ProductHighlights from "./components/ProductHighlights";
-import ContactSection from "./components/ContactSection";
 
 
 export default function Home() {

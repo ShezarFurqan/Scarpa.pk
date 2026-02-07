@@ -4,22 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { 
-  Plus, Trash2, Edit3, Save, Search, X, CheckCircle2, 
-  LayoutGrid, Sliders, Info, Tag, DollarSign , Layers
+  Plus, Trash2, Edit3, Save, Search, CheckCircle2, 
+  Tag, DollarSign, Layers 
 } from 'lucide-react';
 
 export default function CollectionsManager() {
   const [collections, setCollections] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(''); // Search state
+  const [searchTerm, setSearchTerm] = useState(''); 
   
   const [isEditing, setIsEditing] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    gridSettings: { columns: 4, gap: '20px' },
-    selectedProducts: []
+    selectedProducts: [] // Sirf products bache hain
   });
 
   useEffect(() => {
@@ -27,7 +26,7 @@ export default function CollectionsManager() {
       setCollections(snap.docs.map(d => ({ 
         id: d.id, 
         ...d.data(),
-        products: d.data().products || [] // Safety fallback
+        selectedProducts: d.data().selectedProducts || [] 
       })));
       setLoading(false);
     });
@@ -41,7 +40,6 @@ export default function CollectionsManager() {
     return () => unsubCol();
   }, []);
 
-  // Filtered products based on search
   const filteredProducts = allProducts.filter(p => 
     p.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.category?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -65,7 +63,7 @@ export default function CollectionsManager() {
     } else {
       await addDoc(collection(db, 'Productcollections'), { ...formData, createdAt: new Date() });
     }
-    setFormData({ title: '', description: '', gridSettings: { columns: 4, gap: '20px' }, selectedProducts: [] });
+    setFormData({ title: '', description: '', selectedProducts: [] });
   };
 
   const deleteCollection = async (id) => {
@@ -86,7 +84,7 @@ export default function CollectionsManager() {
             {isEditing && (
               <button onClick={() => {
                 setIsEditing(null);
-                setFormData({ title: '', description: '', gridSettings: { columns: 4, gap: '20px' }, selectedProducts: [] });
+                setFormData({ title: '', description: '', selectedProducts: [] });
               }} className="text-[10px] bg-white/5 px-3 py-1 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all">CANCEL</button>
             )}
           </div>
@@ -102,34 +100,13 @@ export default function CollectionsManager() {
               />
               <textarea 
                 className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none h-20 resize-none"
-                placeholder="Description of this group..."
+                placeholder="Description..."
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-black/40 p-3 rounded-2xl border border-white/5">
-                <label className="text-[9px] font-black uppercase text-indigo-500 mb-2 block tracking-tighter flex items-center gap-1"><LayoutGrid size={10}/> Grid Columns</label>
-                <select 
-                  className="w-full bg-transparent text-xs font-bold outline-none cursor-pointer"
-                  value={formData.gridSettings.columns}
-                  onChange={(e) => setFormData({...formData, gridSettings: {...formData.gridSettings, columns: Number(e.target.value)}})}
-                >
-                  {[2,3,4,5,6].map(n => <option key={n} value={n} className="bg-black">{n} Columns Layout</option>)}
-                </select>
-              </div>
-              <div className="bg-black/40 p-3 rounded-2xl border border-white/5">
-                <label className="text-[9px] font-black uppercase text-indigo-500 mb-2 block tracking-tighter flex items-center gap-1"><Sliders size={10}/> Spacing (Gap)</label>
-                <input 
-                  className="w-full bg-transparent text-xs font-bold outline-none"
-                  value={formData.gridSettings.gap}
-                  onChange={(e) => setFormData({...formData, gridSettings: {...formData.gridSettings, gap: e.target.value}})}
-                />
-              </div>
-            </div>
-
-            {/* PRODUCT SELECTOR WITH SEARCH */}
+            {/* PRODUCT SELECTOR */}
             <div className="pt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase text-gray-600 ml-2 tracking-widest">Select Products ({formData.selectedProducts.length})</label>
@@ -145,7 +122,7 @@ export default function CollectionsManager() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-3 bg-black rounded-[2rem] border border-white/5 custom-scrollbar">
+              <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto p-3 bg-black rounded-[2rem] border border-white/5 custom-scrollbar">
                 {filteredProducts.map(product => {
                   const isSelected = formData.selectedProducts.some(p => p.id === product.id);
                   return (
@@ -154,7 +131,7 @@ export default function CollectionsManager() {
                       onClick={() => handleSelectProduct(product)}
                       className={`flex items-center gap-3 p-2 rounded-2xl border transition-all cursor-pointer group ${isSelected ? 'border-indigo-500/50 bg-indigo-500/5' : 'border-white/5 hover:border-white/20'}`}
                     >
-                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 relative">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 relative border border-white/5">
                         <img src={product.images?.[0] || product.image} className="w-full h-full object-cover" />
                         {isSelected && <div className="absolute inset-0 bg-indigo-500/40 flex items-center justify-center"><CheckCircle2 size={16} className="text-white"/></div>}
                       </div>
@@ -162,7 +139,7 @@ export default function CollectionsManager() {
                         <p className="text-[11px] font-bold text-white truncate uppercase tracking-tight">{product.title}</p>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-[9px] text-gray-500 flex items-center gap-0.5"><DollarSign size={8}/> {product.price}</span>
-                          <span className="text-[9px] text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 font-bold uppercase"><Tag size={8}/> {product.category || 'General'}</span>
+                          <span className="text-[9px] text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 font-bold uppercase tracking-tighter"><Tag size={8}/> {product.category}</span>
                         </div>
                       </div>
                     </div>
@@ -195,7 +172,7 @@ export default function CollectionsManager() {
                 <div className="flex justify-between items-start mb-5 relative z-10">
                   <div>
                     <h4 className="text-lg font-black text-white tracking-tighter uppercase">{col.title}</h4>
-                    <p className="text-[11px] text-gray-600 mt-1 line-clamp-1 italic">{col.description || 'No description provided.'}</p>
+                    <p className="text-[11px] text-gray-600 mt-1 line-clamp-1 italic">{col.description}</p>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => { setIsEditing(col.id); setFormData(col); }} className="p-2.5 bg-white/5 rounded-xl hover:bg-indigo-500 hover:text-white transition-all"><Edit3 size={14}/></button>
@@ -205,29 +182,25 @@ export default function CollectionsManager() {
 
                 <div className="flex items-center gap-4 py-5 border-y border-white/[0.03] my-4 relative z-10">
                    <div className="flex -space-x-3 overflow-hidden">
-                      {(col.products || []).slice(0, 5).map((p, i) => (
+                      {(col.selectedProducts || []).slice(0, 5).map((p, i) => (
                         <div key={i} className="h-9 w-9 rounded-xl ring-4 ring-[#0A0A0A] overflow-hidden border border-white/10">
                           <img className="w-full h-full object-cover" src={p.images?.[0] || p.image} alt="" />
                         </div>
                       ))}
-                      {(col.products?.length > 5) && (
+                      {(col.selectedProducts?.length > 5) && (
                         <div className="h-9 w-9 rounded-xl bg-indigo-500 flex items-center justify-center text-[10px] font-black text-white ring-4 ring-[#0A0A0A]">
-                          +{col.products.length - 5}
+                          +{col.selectedProducts.length - 5}
                         </div>
                       )}
                    </div>
                    <div className="flex flex-col">
-                     <span className="text-[10px] font-black text-white uppercase tracking-widest">{col.products?.length || 0} Assets</span>
-                     <span className="text-[9px] text-gray-600 uppercase font-bold tracking-tighter">Linked to store</span>
+                     <span className="text-[10px] font-black text-white uppercase tracking-widest">{col.selectedProducts?.length || 0} Assets</span>
+                     <span className="text-[9px] text-gray-600 uppercase font-bold tracking-tighter">Inventory Linked</span>
                    </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[9px] font-black text-gray-500 uppercase tracking-widest relative z-10">
-                   <div className="flex gap-4">
-                     <span className="flex items-center gap-1 text-indigo-400/70"><LayoutGrid size={12}/> {col.gridSettings?.columns || 4} Cols</span>
-                     <span className="flex items-center gap-1 text-indigo-400/70"><Sliders size={12}/> {col.gridSettings?.gap || '20px'} Gap</span>
-                   </div>
-                   <span className="text-gray-800 font-mono">ID: {col.id.slice(0,6)}</span>
+                <div className="flex items-center justify-end text-[9px] font-black text-gray-700 uppercase tracking-widest relative z-10">
+                   <span className="font-mono">ID: {col.id.slice(0,8)}</span>
                 </div>
               </div>
             ))}

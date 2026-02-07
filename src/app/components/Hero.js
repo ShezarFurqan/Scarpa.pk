@@ -1,22 +1,21 @@
 'use client';
 import React from 'react';
-import { ArrowRight, Play, Star, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Play, Zap, ShieldCheck } from 'lucide-react';
 
 const Hero = ({ data }) => {
-  // Database data ya Default static data
+  // Database data or Default static data
   const content = data || {
-    badge: "Peak Performance Gear",
-    titleLine1: "BORN TO",
-    titleLine2: "CONQUER.",
-    description: "Experience the fusion of rugged durability and elite design. Our latest collection is built for those who never look down.",
+    badge: "Next-Gen Footwear",
+    titleLine1: "RULE THE", 
+    titleLine2: "STREETS.",
+    description: "Discover premium footwear crafted for ultimate comfort and style. Browse our curated selection and find the perfect pair to elevate your every step.",
     btnPrimary: "Shop Now",
     btnSecondary: "Watch Story",
-    reviews: "12k+",
     image: "./images/shoe.png"
   };
 
   return (
-    <section className="relative w-full bg-[#050505] xl:pt-16 md:pt-24 sm:pt-16 pt-2 lg:max-h-[99vh] flex items-center">
+    <section className="relative w-full bg-[#050505]  md:pt-[100px] sm:pt-16 pt-2 lg:max-h-[99vh] flex items-center">
       
       {/* Background Ambient Layers */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -57,24 +56,11 @@ const Hero = ({ data }) => {
                 {content.btnSecondary}
               </button>
             </div>
-
-            {/* Social Proof */}
-            <div className="flex items-center justify-center lg:justify-start gap-6 md:gap-8 pt-6 md:pt-8 border-t border-white/5 mt-4">
-              <div className="flex flex-col">
-                <span className="text-xl md:text-2xl font-bold text-white tracking-tight">{content.reviews}</span>
-                <span className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Reviews</span>
-              </div>
-              <div className="h-8 md:h-10 w-[1px] bg-white/10" />
-              <div className="flex flex-col">
-                <div className="flex text-yellow-500/80 mb-1 gap-0.5">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
-                </div>
-                <span className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Global Trust</span>
-              </div>
-            </div>
+            
+            {/* Reviews Section Removed */}
           </div>
 
-          {/* RIGHT CONTENT - Shoe Area */}
+          {/* RIGHT CONTENT - Shoe Area (Unchanged) */}
           <div className="w-full lg:w-[45%] flex justify-center items-center relative group order-1 lg:order-2">
             <div className="absolute bottom-6 lg:bottom-10 w-[60%] h-[15px] bg-white/10 blur-[30px] lg:blur-[40px] rounded-[100%] transition-all duration-700 lg:group-hover:bg-white/20" />
             <div className="absolute w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] lg:w-[420px] lg:h-[420px] border border-white/[0.03] rounded-full flex items-center justify-center">

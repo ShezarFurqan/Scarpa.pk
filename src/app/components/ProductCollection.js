@@ -65,11 +65,7 @@ const ProductsCollection = ({ collectionName }) => {
 
         {/* Product Grid */}
         <div 
-          className="grid gap-8"
-          style={{ 
-            gridTemplateColumns: `repeat(${collectionData.gridSettings?.columns || 4}, minmax(0, 1fr))`,
-            gap: collectionData.gridSettings?.gap || '2rem'
-          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
         >
           {displayProducts.length > 0 ? (
             displayProducts.map((product) => (

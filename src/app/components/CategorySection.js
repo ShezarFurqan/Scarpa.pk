@@ -9,27 +9,31 @@ import { ShopContext } from '../Context/ShopContext';
  * Uses 'group-hover' for high-end interaction and 'overflow-hidden' for clean scaling.
  */
 const Categories = () => {
-  const { router } = useContext(ShopContext)
+  // 1. Context se products nikale
+  const { router, products } = useContext(ShopContext);
+
+  // 2. Real Count Calculate karne ke liye configuration
+  // Note: Make sure aapke database me category spelling exact "Men", "Women", "Kids" ho
   const categories = [
     {
       id: 1,
-      title: "Mens",
+      name: "Mens", // Database category value
+      displayTitle: "Mens", // UI Title
       image: "/images/men.png", 
-      count: "120+ Products",
       gridSpan: "lg:col-span-1"
     },
     {
       id: 2,
-      title: "Womens",
-      image: "images/women.png", // High-end boot/female climber
-      count: "95+ Products",
+      name: "Womens",
+      displayTitle: "Womens",
+      image: "/images/women.png", 
       gridSpan: "lg:col-span-1"
     },
     {
       id: 3,
-      title: "Kids",
-      image: "images/kids.png", // Youth outdoor gear
-      count: "40+ Products",
+      name: "Kids",
+      displayTitle: "Kids",
+      image: "/images/kids.png", 
       gridSpan: "lg:col-span-1"
     }
   ];
@@ -48,52 +52,59 @@ const Categories = () => {
               Explore specialized gear tailored for every explorer. From elite performance to youth discovery.
             </p>
           </div>
-          <button className="hidden md:flex items-center gap-2 text-white/50 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest pb-1 border-b border-white/10 hover:border-white">
+          <button onClick={()=> router.push('/collection')} className="hidden md:flex items-center gap-2 text-white/50 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest pb-1 border-b border-white/10 hover:border-white">
             View All Collections <ArrowRight size={14} />
           </button>
         </div>
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((cat) => (
-            <div 
-              onClick={()=>{router.push(`/collection/${cat.title}`)}}
-              key={cat.id}
-              className="group relative aspect-[4/5] overflow-hidden rounded-3xl bg-[#111] cursor-pointer"
-            >
-              {/* Image with smooth zoom */}
-              <img 
-                src={cat.image}
-                alt={cat.title}
-                className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
-              />
+          {categories?.map((cat) => {
+            
+            // 3. Har category ka real count nikalna
+            const productCount = products?.filter(item => item.category === cat.name).length;
 
-              {/* Dynamic Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+            return (
+              <div 
+                onClick={() => { router.push(`/collection/${cat.name.toLowerCase()}`) }} // Lowercase URL friendly
+                key={cat.id}
+                className="group relative aspect-[4/5] overflow-hidden rounded-3xl bg-[#111] cursor-pointer"
+              >
+                {/* Image with smooth zoom */}
+                <img 
+                  src={cat.image}
+                  alt={cat.displayTitle}
+                  className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
+                />
 
-              {/* Content Overlay */}
-              <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                <span className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                  {cat.count}
-                </span>
-                
-                <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-6">
-                  {cat.title}
-                </h3>
+                {/* Dynamic Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
-                {/* CTA Button: Slides up on hover */}
-                <div className="overflow-hidden">
-                  <div className="flex items-center gap-2 text-black bg-white px-6 py-3 rounded-full w-fit font-bold text-xs transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
-                    Shop Now
-                    <ArrowRight size={16} />
+                {/* Content Overlay */}
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <span className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    {/* 4. Showing Real Count */}
+                    {productCount} Products
+                  </span>
+                  
+                  <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-6">
+                    {cat.displayTitle}
+                  </h3>
+
+                  {/* CTA Button: Slides up on hover */}
+                  <div className="overflow-hidden">
+                    <div className="flex items-center gap-2 text-black bg-white px-6 py-3 rounded-full w-fit font-bold text-xs transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                      Shop Now
+                      <ArrowRight size={16} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Subtle Inner Glow (Mobile focus) */}
-              <div className="absolute inset-0 border border-white/5 group-hover:border-white/20 transition-colors rounded-3xl pointer-events-none" />
-            </div>
-          ))}
+                {/* Subtle Inner Glow (Mobile focus) */}
+                <div className="absolute inset-0 border border-white/5 group-hover:border-white/20 transition-colors rounded-3xl pointer-events-none" />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

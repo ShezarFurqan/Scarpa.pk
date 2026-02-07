@@ -18,9 +18,9 @@ import {
 
 const NAV_ITEMS = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  // { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Products', href: '/admin/products', icon: Package },
+  { name: 'DirectContact', href: '/admin/directcontacts', icon: Users },
   { name: 'Customization', href: '/admin/customization', icon: SquarePen },
 ]
 
@@ -60,7 +60,7 @@ export default function AdminLayout({ children }) {
       `}>
         <div className="h-16 flex items-center px-8 border-b border-white/5">
           <h1 className="text-xl font-black tracking-tighter uppercase">
-            NEXUS <span className="text-white/20">ADMIN</span>
+            ROCK <span className="text-white/20">CLIMB</span>
           </h1>
           <button onClick={() => setIsSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
             <X size={20} />
