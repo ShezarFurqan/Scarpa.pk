@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { BrowserRouter } from "react-router-dom";
 import Providers from "./providers";
+import { LoadingProvider } from './Context/LoginContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,15 +31,15 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} bg-[#050505] ${geistMono.variable} antialiased`}
       >
         <Providers>
-
+          <LoadingProvider>
             <ShopContextProvider>
               <Navbar />
               <div className="2xl:px-12 lg:px-10 px-2">
                 {children}
               </div>
               <Footer />
-
             </ShopContextProvider>
+            </LoadingProvider>
         </Providers>
 
       </body>

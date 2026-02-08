@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 
 // --- CLOUDINARY CONFIG ---
-const CLOUDINARY_UPLOAD_PRESET = 'your_unsigned_preset'; // Replace with your preset
-const CLOUDINARY_CLOUD_NAME = 'your_cloud_name'; // Replace with your cloud name
+const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 
 /**
  * HELPER: Upload to Cloudinary

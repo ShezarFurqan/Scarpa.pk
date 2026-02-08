@@ -1,22 +1,42 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, Play, Zap, ShieldCheck } from 'lucide-react';
+import {getDoc, doc } from "firebase/firestore";
+import { db } from "../firebase";
+import { useLoading } from '../Context/LoginContext';
 
 const Hero = ({ data }) => {
   // Database data or Default static data
-  const content = data || {
-    badge: "Next-Gen Footwear",
-    titleLine1: "RULE THE", 
-    titleLine2: "STREETS.",
-    description: "Discover premium footwear crafted for ultimate comfort and style. Browse our curated selection and find the perfect pair to elevate your every step.",
-    btnPrimary: "Shop Now",
-    btnSecondary: "Watch Story",
-    image: "./images/shoe.png"
+  const [content, setContent] = useState(null)
+  const { loading, setLoading } = useLoading();
+
+  // const content = data || {
+  //   badge: "Next-Gen Footwear",
+  //   titleLine1: "RULE THE",
+  //   titleLine2: "STREETS.",
+  //   description: "Discover premium footwear crafted for ultimate comfort and style. Browse our curated selection and find the perfect pair to elevate your every step.",
+  //   btnPrimary: "Shop Now",
+  //   btnSecondary: "Watch Story",
+  //   image: "./images/shoe.png"
+  // };
+
+  const fetchHeroContent = async () => {
+    setLoading(true);
+    const docRef = doc(db, "heroSection", "singleton"); // Replace HERO_DOC_ID
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      setContent(docSnap.data());
+    }
+    setLoading(false);
   };
 
-  return (
+  useEffect(() => {
+    fetchHeroContent()
+  }, [])
+
+  return content && (
     <section className="relative w-full bg-[#050505]  md:pt-[100px] sm:pt-16 pt-2 lg:max-h-[99vh] flex items-center">
-      
+
       {/* Background Ambient Layers */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-[-5%] w-[60%] lg:w-[40%] h-[40%] bg-blue-600/[0.03] lg:bg-blue-600/5 blur-[80px] lg:blur-[120px] rounded-full" />
@@ -25,7 +45,7 @@ const Hero = ({ data }) => {
 
       <div className="container mx-auto px-6 md:px-2">
         <div className="flex flex-col lg:flex-row items-center justify-between w-full gap-10 lg:gap-8">
-          
+
           {/* LEFT CONTENT */}
           <div className="w-full lg:w-[55%] flex flex-col space-y-5 md:space-y-6 lg:space-y-8 text-center lg:text-left order-2 lg:order-1">
             <div className="inline-block mx-auto lg:mx-0">
@@ -50,13 +70,13 @@ const Hero = ({ data }) => {
                 {content.btnPrimary}
                 <ArrowRight size={18} />
               </button>
-              
+
               <button className="w-full sm:w-auto px-8 lg:px-10 py-3.5 lg:py-4 bg-transparent text-white rounded-full font-bold border border-white/20 transition-all lg:hover:bg-white/5 flex items-center justify-center gap-2">
                 <Play size={16} fill="white" />
                 {content.btnSecondary}
               </button>
             </div>
-            
+
             {/* Reviews Section Removed */}
           </div>
 
@@ -64,13 +84,13 @@ const Hero = ({ data }) => {
           <div className="w-full lg:w-[45%] flex justify-center items-center relative group order-1 lg:order-2">
             <div className="absolute bottom-6 lg:bottom-10 w-[60%] h-[15px] bg-white/10 blur-[30px] lg:blur-[40px] rounded-[100%] transition-all duration-700 lg:group-hover:bg-white/20" />
             <div className="absolute w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] lg:w-[420px] lg:h-[420px] border border-white/[0.03] rounded-full flex items-center justify-center">
-                <div className="w-[80%] h-[80%] border border-white/[0.02] rounded-full" />
+              <div className="w-[80%] h-[80%] border border-white/[0.02] rounded-full" />
             </div>
-            
+
             <div className="relative z-10 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform rotate-[-6deg] lg:rotate-[-12deg] lg:group-hover:rotate-[-5deg] lg:group-hover:scale-105">
-              <img 
-                src={content.image} 
-                alt="Hero" 
+              <img
+                src={content.image}
+                alt="Hero"
                 className="w-full h-auto max-w-[240px] sm:max-w-[320px] lg:max-w-[460px] drop-shadow-[10px_20px_20px_rgba(0,0,0,0.6)] lg:drop-shadow-[20px_40px_40px_rgba(0,0,0,0.8)] select-none pointer-events-none"
               />
 
