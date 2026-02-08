@@ -15,14 +15,14 @@ import DeleteConfirmationModal from '@/app/components/DeleteConfirmationModal'
 const CATEGORIES = ['Mens', 'Womens', 'Kids']
 const PRODUCT_STATUSES = [
   'None',
-  'Trending', 
-  'Best Seller', 
-  'New Arrival', 
-  'Limited Edition', 
-  'On Sale', 
-  'Featured', 
-  'Seasonal', 
-  'Popular', 
+  'Trending',
+  'Best Seller',
+  'New Arrival',
+  'Limited Edition',
+  'On Sale',
+  'Featured',
+  'Seasonal',
+  'Popular',
   'Exclusive'
 ]
 
@@ -63,22 +63,22 @@ export default function ProductManagement() {
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState(null)
-  
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deleteConfig, setDeleteConfig] = useState({ id: null, type: null, message: '' })
 
   // --- FORM STATES ---
   const [newProduct, setNewProduct] = useState({
-    title: '', 
+    title: '',
     purchasingPrice: '', // <-- Added field
-    price: '', 
-    fakePrice: '', 
-    qty: '', 
-    category: 'Mens', 
-    status: 'None',   
-    brand: '', 
-    description: '', 
-    images: [], 
+    price: '',
+    fakePrice: '',
+    qty: '',
+    category: 'Mens',
+    status: 'None',
+    brand: '',
+    description: '',
+    images: [],
     sizes: [], // Multiple sizes array
     isActive: true
   })
@@ -124,6 +124,16 @@ export default function ProductManagement() {
     setIsDeleteModalOpen(true)
   }
 
+  // --- TASK 1: IMAGE INDEX MANAGEMENT ---
+  const setPrimaryImage = (index) => {
+    setNewProduct(prev => {
+      const updatedImages = [...prev.images];
+      const selectedImage = updatedImages.splice(index, 1)[0];
+      updatedImages.unshift(selectedImage);
+      return { ...prev, images: updatedImages };
+    });
+  }
+
   const handleFinalConfirmDelete = () => {
     if (deleteConfig.type === 'product') executeDeleteProduct(deleteConfig.id)
     else if (deleteConfig.type === 'collection') executeDeleteCollection(deleteConfig.id)
@@ -141,7 +151,7 @@ export default function ProductManagement() {
     setLoading(true)
     const q = query(collection(db, 'products'), where('collectionId', '==', id))
     const productSnap = await getDocs(q)
-    for (const pDoc of productSnap.docs) await deleteDoc(doc(db, 'products', pDoc.id)) 
+    for (const pDoc of productSnap.docs) await deleteDoc(doc(db, 'products', pDoc.id))
     await deleteDoc(doc(db, 'collections', id))
     fetchCollections()
     if (activeCol?.id === id) setView('collections')
@@ -168,7 +178,7 @@ export default function ProductManagement() {
     });
   }
 
-  // --- SUBMIT ---
+  // --- TASK 2 & 3: CLEAN SUBMIT LOGIC ---
   const handleProductSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -177,12 +187,26 @@ export default function ProductManagement() {
       const newlyUploadedUrls = await Promise.all(uploadPromises)
       const finalImages = [...newProduct.images, ...newlyUploadedUrls]
 
-      const productToSave = {
+      // Create base object with system fields
+      const rawProduct = {
         ...newProduct,
         images: finalImages,
         isActive: newProduct.isActive ?? true,
         updatedAt: Date.now()
       }
+
+      // Cleanup: Remove empty strings, convert empty numbers to null, prevent undefined
+      const productToSave = Object.fromEntries(
+        Object.entries(rawProduct).filter(([_, v]) => {
+          return v !== "" && v !== undefined && (Array.isArray(v) ? v.length >= 0 : true)
+        }).map(([k, v]) => {
+          // Convert numeric strings to actual numbers or null if empty
+          if (['price', 'purchasingPrice', 'qty', 'fakePrice'].includes(k)) {
+            return [k, v === "" ? null : Number(v)];
+          }
+          return [k, v];
+        })
+      )
 
       if (isEditMode) {
         await updateDoc(doc(db, 'products', selectedProductId), productToSave)
@@ -217,13 +241,13 @@ export default function ProductManagement() {
 
   const openEditModal = (product) => {
     setIsEditMode(true); setSelectedProductId(product.id)
-    setNewProduct({ 
-      ...product, 
-      images: product.images || [], 
+    setNewProduct({
+      ...product,
+      images: product.images || [],
       sizes: product.sizes || [],
-      isActive: product.isActive ?? true, 
-      category: product.category || 'Mens', 
-      status: product.status || 'None' 
+      isActive: product.isActive ?? true,
+      category: product.category || 'Mens',
+      status: product.status || 'None'
     })
     setIsProductModalOpen(true)
   }
@@ -295,7 +319,7 @@ export default function ProductManagement() {
                 <div className="aspect-square relative overflow-hidden bg-black">
                   <img src={product.images?.[0] || 'https://via.placeholder.com/400'} className={`w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all ${!product.isActive ? 'grayscale' : ''}`} alt="" />
                   {!product.isActive && <div className="absolute top-4 left-4 z-10"><span className="bg-rose-500/90 backdrop-blur-sm text-[8px] font-black text-white px-2 py-1 rounded-md uppercase">Hidden</span></div>}
-                  
+
                   {product.status && product.status !== 'None' && (
                     <div className="absolute bottom-4 left-4 z-10">
                       <span className="bg-white/90 text-black text-[8px] font-bold px-2 py-1 rounded-full uppercase tracking-widest shadow-lg">
@@ -340,12 +364,12 @@ export default function ProductManagement() {
               <h3 className="text-2xl font-black uppercase tracking-tight text-white">{isEditMode ? 'Edit Product' : 'New Product'}</h3>
               <button onClick={closeProductModal} className="text-gray-500 hover:text-white"><X size={24} /></button>
             </div>
-            
+
             <form onSubmit={handleProductSubmit} className="space-y-6 pb-20">
               {/* Active Toggle */}
               <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
                 <div><p className="text-sm font-bold text-white uppercase">Active Status</p></div>
-                <button type="button" onClick={() => setNewProduct({...newProduct, isActive: !newProduct.isActive})} className={`w-12 h-6 rounded-full transition-all relative ${newProduct.isActive ? 'bg-indigo-500' : 'bg-gray-700'}`}>
+                <button type="button" onClick={() => setNewProduct({ ...newProduct, isActive: !newProduct.isActive })} className={`w-12 h-6 rounded-full transition-all relative ${newProduct.isActive ? 'bg-indigo-500' : 'bg-gray-700'}`}>
                   <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${newProduct.isActive ? 'left-7' : 'left-1'}`} />
                 </button>
               </div>
@@ -355,7 +379,11 @@ export default function ProductManagement() {
                 <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Product Images</label>
                 <div className="grid grid-cols-3 gap-3">
                   {newProduct.images.map((url, i) => (
-                    <div key={i} className="aspect-square rounded-xl overflow-hidden relative group border border-white/10">
+                    <div
+                      key={i}
+                      onClick={() => setPrimaryImage(i)} // Add this trigger
+                      className={`aspect-square rounded-xl overflow-hidden relative group border cursor-pointer ${i === 0 ? 'border-indigo-500 border-2' : 'border-white/10'}`}
+                    >
                       <img src={url} className="w-full h-full object-cover" alt="" />
                       <button type="button" onClick={() => removeExistingImage(url)} className="absolute top-1 right-1 p-1 bg-rose-500 rounded-full text-white opacity-0 group-hover:opacity-100"><X size={12} /></button>
                     </div>
@@ -374,9 +402,9 @@ export default function ProductManagement() {
                 </div>
                 <input type="file" ref={fileInputRef} multiple accept="image/*" className="hidden" onChange={handleImageChange} />
               </div>
-              
-              <input required value={newProduct.title} onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30" placeholder="Product Title" />
-              
+
+              <input value={newProduct.title} onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30" placeholder="Product Title" />
+
               {/* SIZES MULTI-SELECT SECTION */}
               <div className="space-y-3">
                 <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Available Sizes (UK / EU)</label>
@@ -386,11 +414,10 @@ export default function ProductManagement() {
                       key={size}
                       type="button"
                       onClick={() => toggleSize(size)}
-                      className={`py-3 px-2 rounded-xl border text-[10px] font-bold transition-all ${
-                        newProduct.sizes?.includes(size)
+                      className={`py-3 px-2 rounded-xl border text-[10px] font-bold transition-all ${newProduct.sizes?.includes(size)
                           ? 'bg-white text-black border-white'
                           : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'
-                      }`}
+                        }`}
                     >
                       {size}
                     </button>
@@ -401,39 +428,39 @@ export default function ProductManagement() {
               {/* --- NEW DROPDOWNS SECTION --- */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                   <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Category</label>
-                   <select 
-                     value={newProduct.category} 
-                     onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
-                   >
-                     {CATEGORIES.map(c => <option key={c} value={c} className="bg-[#0D0D0D]">{c}</option>)}
-                   </select>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Category</label>
+                  <select
+                    value={newProduct.category}
+                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
+                  >
+                    {CATEGORIES.map(c => <option key={c} value={c} className="bg-[#0D0D0D]">{c}</option>)}
+                  </select>
                 </div>
 
                 <div className="space-y-1">
-                   <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Status / Tag</label>
-                   <select 
-                     value={newProduct.status || 'None'} 
-                     onChange={(e) => setNewProduct({...newProduct, status: e.target.value})}
-                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
-                   >
-                     {PRODUCT_STATUSES.map(s => <option key={s} value={s} className="bg-[#0D0D0D]">{s}</option>)}
-                   </select>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Status / Tag</label>
+                  <select
+                    value={newProduct.status || 'None'}
+                    onChange={(e) => setNewProduct({ ...newProduct, status: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
+                  >
+                    {PRODUCT_STATUSES.map(s => <option key={s} value={s} className="bg-[#0D0D0D]">{s}</option>)}
+                  </select>
                 </div>
               </div>
 
               {/* PURCHASING PRICE FIELD */}
-              <input required type="number" value={newProduct.purchasingPrice} onChange={(e) => setNewProduct({ ...newProduct, purchasingPrice: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30" placeholder="Purchasing Price (Cost)" />
+              <input  type="number" value={newProduct.purchasingPrice} onChange={(e) => setNewProduct({ ...newProduct, purchasingPrice: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30" placeholder="Purchasing Price (Cost)" />
 
               <div className="grid grid-cols-2 gap-4">
-                <input required type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Selling Price" />
+                <input  type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Selling Price" />
                 <input type="number" value={newProduct.fakePrice} onChange={(e) => setNewProduct({ ...newProduct, fakePrice: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Fake Price" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <input required type="number" value={newProduct.qty} onChange={(e) => setNewProduct({ ...newProduct, qty: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Qty" />
-                <input required value={newProduct.brand} onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Brand" />
+                <input type="number" value={newProduct.qty} onChange={(e) => setNewProduct({ ...newProduct, qty: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Qty" />
+                <input value={newProduct.brand} onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Brand" />
               </div>
 
               <textarea rows="4" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Description" />
