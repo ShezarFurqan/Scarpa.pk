@@ -294,7 +294,7 @@ function OrderRow({ order, expanded, onToggle, onStatusChange, onDelete }) {
           <div className="flex items-center gap-3">
             <div className={`w-2 h-2 rounded-full ${order.source === 'manual' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.4)]'}`}></div>
             <div>
-              <p className="font-mono text-[11px] font-black text-white/90 uppercase tracking-tighter">#{order.id.slice(-8)}</p>
+              <p className="font-mono text-[11px] font-black text-white/90 uppercase tracking-tighter">#{order.id}</p>
               <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">{order.date || "Just Now"}</p>
             </div>
           </div>

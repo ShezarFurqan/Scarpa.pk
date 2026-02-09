@@ -32,7 +32,7 @@ export default function CartPage() {
           <ShoppingBag className="text-gray-500" size={32} />
         </div>
         <h2 className="text-3xl font-black uppercase tracking-tighter mb-2">Your cart is empty</h2>
-        <Link href="/collections/allproducts" className="bg-white text-black px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs mt-4">
+        <Link href="/collection/allproducts" className="bg-white text-black px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs mt-4">
           Start Shopping
         </Link>
       </div>
@@ -102,7 +102,7 @@ export default function CartPage() {
           ))}
 
           <div className="pt-4 text-center">
-            <Link href="/collections/allproducts" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
+            <Link href="/collection/allproducts" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
               <ArrowLeft size={14} /> Continue Shopping
             </Link>
           </div>

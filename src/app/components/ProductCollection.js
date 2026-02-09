@@ -74,6 +74,7 @@ const ProductsCollection = ({ collectionName }) => {
                 product={product} 
                 title={product.title} 
                 price={product.price}
+                productId={product.id}
                 // Aapke data mein images[0] hai, ensure ProductCard ise handle kare
                 image={product.images ? product.images[0] : ''} 
               />

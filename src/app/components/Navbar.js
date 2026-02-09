@@ -5,12 +5,15 @@ import Link from "next/link";
 import { User, ShoppingBag, X } from "lucide-react";
 import { ShopContext } from "../Context/ShopContext";
 import { usePathname } from "next/navigation";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { router, cart, token } = useContext(ShopContext);
+  const { router, cart, token, user, setToken, setUser } = useContext(ShopContext);
   const pathname = usePathname();
-  const [totalItems, setTotalItems] = useState(5);
+  const [totalItems, setTotalItems] = useState(0);
+  const [open, setOpen] = useState(false);
 
   const links = [
     { name: "Home", href: "/" },
@@ -20,17 +23,23 @@ export default function Navbar() {
     { name: "Kids", href: "/collection/kids" }
   ];
 
-  useEffect(()=>{
+  useEffect(() => {
     setTotalItems(cart?.reduce((acc, item) => acc + item.quantity, 0))
-  },[cart])
+  }, [cart])
 
-  const handleProfile = () => {
-    if (!token) {
-      router.push("/login")
-    }else {
-      router.push("/profile")
-    }
-  }
+    const handleLogout = async () => {
+        try {
+            await signOut(auth); // 🔴 MOST IMPORTANT
+
+            setUser(null);
+            setToken(null);
+            localStorage.removeItem("token");
+
+            router.push('/');
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
 
   // Close mobile menu if screen resized to desktop
@@ -82,7 +91,62 @@ export default function Navbar() {
 
             {/* Right side icons */}
             <div className="flex items-center gap-6 text-white relative">
-              <User onClick={handleProfile} className="h-5 w-5 cursor-pointer hover:opacity-80 transition" />
+<div className="relative group z-50">
+
+  {/* USER ICON */}
+  <User className="h-5 w-5 cursor-pointer hover:opacity-80 transition text-white" />
+
+  {/* DROPDOWN */}
+  <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150">
+
+    <div className="w-44 bg-[#0A0A0A] border border-white/10 rounded-xl shadow-xl overflow-hidden">
+
+      {user ? (
+        <>
+          <button
+            onClick={() => router.push("/profile")}
+            className="w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition"
+          >
+            Profile
+          </button>
+
+          <button
+            onClick={() => router.push("/track-order")}
+            className="w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition"
+          >
+            Track Order
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-3 text-xs text-red-400 hover:bg-white/5 transition"
+          >
+            Logout
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={() => router.push("/login")}
+            className="w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition"
+          >
+            Login
+          </button>
+
+          <button
+            onClick={() => router.push("/track-order")}
+            className="w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition"
+          >
+            Track Order
+          </button>
+        </>
+      )}
+
+    </div>
+  </div>
+
+</div>
+
 
               <div className="relative">
                 <ShoppingBag

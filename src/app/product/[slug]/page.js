@@ -17,7 +17,7 @@ import RelatedProducts from '@/app/components/RelatedProducts';
 export default function ProductDetailPage({ params }) {
   const resolvedParams = use(params);
   const productId = resolvedParams.slug;
-  const { products, token, addToCart } = useContext(ShopContext);
+  const { products, token, addToCart, router } = useContext(ShopContext);
 
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -196,7 +196,7 @@ export default function ProductDetailPage({ params }) {
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 flex items-center gap-2">
                   <Ruler size={14} /> Size Selection
                 </label>
-                <button className="text-[10px] text-white/40 hover:text-white transition-colors underline underline-offset-4 uppercase font-bold">Size Guide</button>
+                <button onClick={()=>{router.push("/sizeguide")}} className="text-[10px] text-white/40 hover:text-white transition-colors underline underline-offset-4 uppercase font-bold">Size Guide</button>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {product.sizes?.map((size) => (
@@ -223,9 +223,7 @@ export default function ProductDetailPage({ params }) {
                 <button onClick={handleAddToCart} className="bg-white text-black py-6 rounded-full font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all flex items-center justify-center gap-3">
                   <ShoppingBag size={18} /> Add To Bag
                 </button>
-                <button className="bg-white/5 border border-white/10 text-white py-6 rounded-full font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all flex items-center justify-center gap-3">
-                  <Zap size={18} className="text-yellow-500" fill="currentColor" /> Quick Buy
-                </button>
+
               </div>
             </div>
 

@@ -152,7 +152,7 @@ export default function CheckoutPage() {
 
       // 3. Success Actions
       setIsSuccess(true);
-      setCart(); // Clear Context
+      setCart([]); // Clear Context
       localStorage.removeItem('cart'); // Double safety clearing local storage
       window.scrollTo(0, 0);
       
@@ -174,7 +174,7 @@ export default function CheckoutPage() {
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">Order Confirmed!</h1>
         <p className="text-gray-400 max-w-lg font-light leading-relaxed mb-8 text-sm md:text-base">
           Thank you, <span className="text-white font-bold">{formData.fullName}</span>. Your order has been successfully placed. <br/>
-          Order ID: <span className="font-mono text-emerald-400">#{orderId?.slice(0, 8).toUpperCase()}</span>
+          Order ID: <span className="font-mono text-emerald-400">#{orderId?.toUpperCase()}</span>
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link href="/" className="bg-white text-black px-10 py-4 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-all active:scale-95 shadow-lg shadow-white/10">

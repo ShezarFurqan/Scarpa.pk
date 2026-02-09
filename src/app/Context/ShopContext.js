@@ -23,125 +23,133 @@ const ShopContextProvider = (props) => {
 
 
     useEffect(() => {
-
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-
             if (currentUser) {
-                setUser(currentUser)
+                setUser(currentUser);
+                setToken(currentUser.uid); // optional, if you want token
             } else {
-                setUser(null)
+                setUser(null);
+                setToken(null);
             }
+            setLoading(false);
+        });
 
-            setLoading(false)
-        })
-
-        return () => unsubscribe()
-
-    }, [])
+        return () => unsubscribe();
+    }, []);
 
 
-    const saveCartToDB = async (userId, cartItems) => {
-        if (!userId) return;
-        try {
-            const userRef = doc(db, "users", userId);
-
-            // Firestore me document create ya merge karna
-            await setDoc(
-                userRef,
-                {
-                    cart: cartItems,
-                    updatedAt: serverTimestamp(),
-                },
-                { merge: true } // agar document already exist kare to merge
-            );
-
-        } catch (error) {
-            console.error("❌ Error syncing cart to DB:", error);
-        }
-    };
 
     const fetchCartFromDB = async (userId) => {
         if (!userId) return [];
         try {
             const userRef = doc(db, "users", userId);
             const docSnap = await getDoc(userRef);
-
             if (docSnap.exists() && docSnap.data().cart) {
                 return docSnap.data().cart;
             }
-            return [];
         } catch (error) {
-            console.error("❌ Error fetching cart from DB:", error);
-            return [];
+            console.error("❌ Error fetching cart:", error);
+        }
+        return [];
+    };
+
+    const saveCartToDB = async (userId, cartItems) => {
+        if (!userId || !cartItems) return;
+        try {
+            const userRef = doc(db, "users", userId);
+            await setDoc(userRef, {
+                cart: cartItems,
+                updatedAt: serverTimestamp(),
+            }, { merge: true });
+        } catch (error) {
+            console.error("❌ Error saving cart:", error);
         }
     };
 
-    // ----------------- Load Cart on Start -----------------
-    useEffect(() => {
-        const loadCart = async () => {
-            if (user?.uid) {
-                // Logged-in user -> Fetch cart from DB
-                const dbCart = await fetchCartFromDB(user.uid);
-
-                // Merge guest cart from localStorage if exists
-                const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-                const mergedCart = mergeCarts(dbCart, localCart);
-
-                setCart(mergedCart);
-                localStorage.setItem("cart", JSON.stringify(mergedCart));
-                saveCartToDB(user.uid, mergedCart); // Sync merged cart to DB
-            } else {
-                // Guest user -> localStorage
-                const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-                setCart(localCart);
-            }
-        };
-        loadCart();
-    }, [user]);
-
-    // ----------------- Helper: Merge Guest + DB Cart -----------------
     const mergeCarts = (dbCart, localCart) => {
         const merged = [...dbCart];
-
         localCart.forEach((item) => {
             const existing = merged.find(
                 (dbItem) => dbItem.id === item.id && dbItem.size === item.size
             );
             if (existing) {
-                existing.quantity += item.quantity; // merge quantity
+                const stock = Number(item.qty || item.stock || Infinity);
+                existing.quantity = Math.min(existing.quantity + item.quantity, stock);
             } else {
                 merged.push(item);
             }
         });
-
         return merged;
     };
 
-    // ----------------- Cart Functions -----------------
+    // --- 3. Effects (Safety Checks Added) ---
+
+    // Load Cart: Only runs in the browser
+    useEffect(() => {
+        const loadCart = async () => {
+            // Check if we are in the browser
+            if (typeof window !== "undefined") {
+                const localData = localStorage.getItem("cart");
+                const localCart = localData ? JSON.parse(localData) : [];
+
+                if (user?.uid) {
+                    const dbCart = await fetchCartFromDB(user.uid);
+                    if (localCart.length > 0) {
+                        const merged = mergeCarts(dbCart, localCart);
+                        setCart(merged);
+                        localStorage.removeItem("cart");
+                        saveCartToDB(user.uid, merged);
+                    } else {
+                        setCart(dbCart);
+                    }
+                } else {
+                    setCart(localCart);
+                }
+            }
+        };
+        loadCart();
+    }, [user]);
+
+    // Auto-sync: Only runs when cart changes
+    useEffect(() => {
+        if (typeof window !== "undefined" && cart.length > 0) {
+            localStorage.setItem("cart", JSON.stringify(cart));
+            if (user?.uid) {
+                saveCartToDB(user.uid, cart);
+            }
+        }
+    }, [cart, user]);
+
+    // --- 4. Main Actions ---
+
     const addToCart = (product, quantity = 1, size = "") => {
         setCart((prev) => {
-            const existing = prev.find(
-                (item) => item.id === product.id && item.size === size
-            );
+            const existing = prev.find(item => item.id === product.id && item.size === size);
+            const stock = Number(product.qty || product.stock || Infinity);
+            const qtyToAdd = Number(quantity);
 
-            const updatedCart = existing
-                ? prev.map((item) =>
-                    item.id === product.id && item.size === size
-                        ? { ...item, quantity: item.quantity + quantity }
+            if (existing) {
+                return prev.map(item =>
+                    (item.id === product.id && item.size === size)
+                        ? { ...item, quantity: Math.min(item.quantity + qtyToAdd, stock) }
                         : item
-                )
-                : [...prev, { ...product, quantity, size }];
-
-            // Save to localStorage
-            localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-            // Save to DB if user is logged-in
-            if (user?.uid) saveCartToDB(user.uid, updatedCart);
-
-            return updatedCart;
+                );
+            }
+            return [...prev, { ...product, size, quantity: Math.min(qtyToAdd, stock) }];
         });
     };
 
+    const updateQuantity = (productId, size = "", newQty) => {
+        setCart((prev) => {
+            return prev.map((item) => {
+                if (item.id === productId && item.size === size) {
+                    const stock = Number(item.qty || item.stock || Infinity);
+                    return { ...item, quantity: Math.min(Math.max(0, newQty), stock) };
+                }
+                return item;
+            }).filter(item => item.quantity > 0);
+        });
+    };
     const removeFromCart = (productId, size = "") => {
         setCart((prev) => {
             const updatedCart = prev.filter(
@@ -155,23 +163,6 @@ const ShopContextProvider = (props) => {
         });
     };
 
-    const updateQuantity = (productId, size = "", quantity) => {
-        setCart((prev) => {
-            const updatedCart =
-                quantity <= 0
-                    ? prev.filter((item) => !(item.id === productId && item.size === size))
-                    : prev.map((item) =>
-                        item.id === productId && item.size === size
-                            ? { ...item, quantity }
-                            : item
-                    );
-
-            localStorage.setItem("cart", JSON.stringify(updatedCart));
-            if (user?.uid) saveCartToDB(user.uid, updatedCart);
-
-            return updatedCart;
-        });
-    };
 
 
 
