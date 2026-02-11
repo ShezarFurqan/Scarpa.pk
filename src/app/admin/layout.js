@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'DirectContact', href: '/admin/directcontacts', icon: Users },
   { name: 'Customization', href: '/admin/customization', icon: SquarePen },
+  { name: 'Direct Messages', href: '/admin/messages', icon: SquarePen },
 ]
 
 export default function AdminLayout({ children }) {

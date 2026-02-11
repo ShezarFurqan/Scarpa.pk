@@ -3,7 +3,7 @@ import React, { use, useState, useContext, useEffect, useRef } from 'react'
 import {
   Star, Plus, Minus, ShoppingBag, Zap,
   CheckCircle2, ShieldCheck, Truck, MessageSquare,
-  LogIn, Ruler, Info
+  LogIn, Ruler, Info, MessageCircleMore
 } from 'lucide-react'
 import Link from 'next/link'
 import { ShopContext } from '@/app/Context/ShopContext';
@@ -13,6 +13,7 @@ import {
   onSnapshot, serverTimestamp
 } from 'firebase/firestore';
 import RelatedProducts from '@/app/components/RelatedProducts';
+import ProductChat from '@/app/components/ProductChat';
 
 export default function ProductDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -25,6 +26,7 @@ export default function ProductDetailPage({ params }) {
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState([]);
   const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
   const [newReview, setNewReview] = useState({ name: "", rating: 5, comment: "" });
 
   const imgRef = useRef(null);
@@ -223,7 +225,7 @@ export default function ProductDetailPage({ params }) {
                 <button onClick={handleAddToCart} className="bg-white text-black py-6 rounded-full font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all flex items-center justify-center gap-3">
                   <ShoppingBag size={18} /> Add To Bag
                 </button>
-
+                <ProductChat product={product} />
               </div>
             </div>
 
