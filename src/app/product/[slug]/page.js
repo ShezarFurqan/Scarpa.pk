@@ -163,7 +163,7 @@ export default function ProductDetailPage({ params }) {
             <div className="space-y-3">
                <div className="flex items-center justify-between">
                     <span className="text-gray-400 text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">
-                        {product.category || "New Arrival"}
+                        {product.category == "none" || ""}
                     </span>
                     {product.bestseller && (
                         <span className="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wider rounded-full border border-amber-100 flex items-center gap-1">

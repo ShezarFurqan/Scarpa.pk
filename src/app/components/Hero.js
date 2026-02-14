@@ -83,7 +83,7 @@ const Hero = () => {
 
             {/* The Shoe - Scaled up for 'Premium' feel */}
             <img
-              src={content.image} 
+              src={content.image}
               alt="Scarpa Shoe"
               className="w-[90%] md:w-[100%] lg:w-[97%] max-w-[800px] h-auto transform rotate-[-15deg] lg:translate-x-12 select-none animate-float drop-shadow-[0_40px_50px_rgba(0,0,0,0.1)] z-20"
             />
