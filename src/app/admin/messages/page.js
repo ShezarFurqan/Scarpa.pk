@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { db } from '../../firebase'; // Apne path ke hisab se adjust karein
+import { db } from '../../firebase'; 
 import { 
   collection, query, orderBy, onSnapshot, 
   doc, updateDoc, addDoc, serverTimestamp, limit 
 } from 'firebase/firestore';
 import { 
   Search, Send, MoreVertical, Phone, 
-  Clock, CheckCheck, User, Image as ImageIcon 
+  CheckCheck, User, Image as ImageIcon, ArrowLeft 
 } from 'lucide-react';
 
 export default function AdminChat() {
@@ -19,11 +19,11 @@ export default function AdminChat() {
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
 
-  // 1. FETCH ALL CONVERSATIONS (Sidebar)
+  // 1. FETCH ALL CONVERSATIONS
   useEffect(() => {
     const q = query(
       collection(db, "conversations"),
-      orderBy("updatedAt", "desc") // Latest chat upar
+      orderBy("updatedAt", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -38,11 +38,10 @@ export default function AdminChat() {
     return () => unsubscribe();
   }, []);
 
-  // 2. FETCH MESSAGES FOR SELECTED CHAT
+  // 2. FETCH MESSAGES
   useEffect(() => {
     if (!selectedChat) return;
 
-    // Mark as read by Admin immediately
     if (selectedChat.unreadAdmin > 0) {
       updateDoc(doc(db, "conversations", selectedChat.id), {
         unreadAdmin: 0
@@ -58,14 +57,13 @@ export default function AdminChat() {
         ...doc.data()
       }));
       setMessages(msgs);
-      // Auto scroll to bottom
       setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
 
     return () => unsubscribe();
   }, [selectedChat?.id]);
 
-  // 3. SEND REPLY (Admin to User)
+  // 3. SEND REPLY
   const handleSendReply = async (e) => {
     e.preventDefault();
     if (!replyText.trim() || !selectedChat) return;
@@ -74,7 +72,6 @@ export default function AdminChat() {
     setReplyText('');
 
     try {
-      // A. Add Message
       await addDoc(collection(db, "conversations", selectedChat.id, "messages"), {
         sender: "admin",
         text: text,
@@ -82,10 +79,9 @@ export default function AdminChat() {
         seen: false
       });
 
-      // B. Update Conversation Meta
       await updateDoc(doc(db, "conversations", selectedChat.id), {
         lastMessage: text,
-        unreadUser: (selectedChat.unreadUser || 0) + 1, // User ke liye unread count badhao
+        unreadUser: (selectedChat.unreadUser || 0) + 1,
         updatedAt: serverTimestamp()
       });
 
@@ -94,24 +90,24 @@ export default function AdminChat() {
     }
   };
 
-  // Helper: Format Time
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     return timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <div className="flex h-screen bg-[#050505] text-white overflow-hidden font-sans">
+    <div className="flex h-[calc(100vh-64px)] md:h-screen text-white overflow-hidden font-sans relative">
       
       {/* ================= LEFT SIDEBAR (Chat List) ================= */}
-      <div className="w-full md:w-[350px] lg:w-[400px] border-r border-white/10 flex flex-col bg-[#0A0A0A]">
+      {/* Logic: Mobile pe agar chat selected hai to Sidebar chupao (hidden), otherwise dikhao */}
+      <div className={`
+        flex-col border-r border-white/10  w-full md:w-[350px] lg:w-[400px]
+        ${selectedChat ? 'hidden md:flex' : 'flex'} 
+      `}>
         
         {/* Header */}
-        <div className="h-16 border-b border-white/10 flex items-center justify-between px-6">
+        <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
           <h1 className="font-bold text-lg tracking-wide">Inbox</h1>
-          <div className="bg-white/5 p-2 rounded-full">
-            <Search size={18} className="text-gray-400" />
-          </div>
         </div>
 
         {/* List */}
@@ -129,7 +125,6 @@ export default function AdminChat() {
                   selectedChat?.id === chat.id ? "bg-white/10" : ""
                 }`}
               >
-                {/* Avatar / Product Image */}
                 <div className="relative">
                   <img 
                     src={chat.productImage || "/placeholder.jpg"} 
@@ -143,7 +138,6 @@ export default function AdminChat() {
                   )}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline mb-1">
                     <h3 className="font-bold text-sm truncate text-white">
@@ -164,112 +158,126 @@ export default function AdminChat() {
       </div>
 
       {/* ================= RIGHT MAIN AREA (Chat Window) ================= */}
-      {selectedChat ? (
-        <div className="flex-1 flex flex-col bg-[#050505]">
-          
-          {/* Header */}
-          <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-[#0A0A0A]">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-white/10 overflow-hidden">
-                <img src={selectedChat.productImage} className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <h2 className="font-bold text-sm">{selectedChat.guestName}</h2>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  Inquiry for: <span className="text-white">{selectedChat.productName}</span>
+      {/* Logic: Mobile pe Chat tabhi dikhegi jab selectedChat ho. Desktop pe hamesha dikhegi (lekin Empty state handle hoga) */}
+      <div className={`
+        flex-1 flex-col bg-[#050505]
+        ${selectedChat ? 'flex fixed inset-0 z-50 md:static' : 'hidden md:flex'}
+      `}>
+        
+        {selectedChat ? (
+          <>
+            {/* Header */}
+            <div className="h-16 border-b border-white/10 flex items-center justify-between px-4 md:px-6 bg-[#0A0A0A] flex-shrink-0">
+              <div className="flex items-center gap-3 md:gap-4">
+                {/* Back Button (Mobile Only) */}
+                <button 
+                  onClick={() => setSelectedChat(null)} 
+                  className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-white/10 overflow-hidden">
+                  <img src={selectedChat.productImage} className="w-full h-full object-cover" />
                 </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4 text-gray-400">
-              <button className="hover:text-white"><Phone size={20}/></button>
-              <button className="hover:text-white"><MoreVertical size={20}/></button>
-            </div>
-          </div>
-
-          {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#050505]">
-            
-            {/* Context Banner */}
-            <div className="flex justify-center">
-              <span className="text-[10px] uppercase tracking-widest text-gray-600 font-bold bg-white/5 px-3 py-1 rounded-full">
-                Conversation Started: {selectedChat.createdAt?.toDate().toDateString()}
-              </span>
-            </div>
-
-            {messages.map((msg, index) => {
-              const isAdmin = msg.sender === 'admin';
-              return (
-                <div key={index} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
-                  {/* Avatar if user */}
-                  {!isAdmin && (
-                    <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 border border-white/10">
-                      <User size={14} className="text-gray-400" />
-                    </div>
-                  )}
-
-                  <div className={`max-w-[70%] space-y-1 ${isAdmin ? 'items-end flex flex-col' : 'items-start flex flex-col'}`}>
-                    <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                      isAdmin 
-                        ? 'bg-indigo-600 text-white rounded-tr-none' 
-                        : 'bg-[#1a1a1a] text-gray-200 border border-white/5 rounded-tl-none'
-                    }`}>
-                      {msg.text}
-                    </div>
-                    <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                      {formatTime(msg.createdAt)}
-                      {isAdmin && <CheckCheck size={12} className="text-indigo-400" />}
-                    </span>
+                <div>
+                  <h2 className="font-bold text-sm">{selectedChat.guestName}</h2>
+                  <div className="hidden md:flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Inquiry for: <span className="text-white max-w-[150px] truncate">{selectedChat.productName}</span>
+                  </div>
+                  {/* Mobile Subtitle */}
+                  <div className="md:hidden text-xs text-gray-400 truncate w-32">
+                    {selectedChat.productName}
                   </div>
                 </div>
-              );
-            })}
-            <div ref={scrollRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="p-4 bg-[#0A0A0A] border-t border-white/10">
-            <form onSubmit={handleSendReply} className="flex items-end gap-3 max-w-4xl mx-auto">
-              <button type="button" className="p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
-                <ImageIcon size={20} />
-              </button>
+              </div>
               
-              <div className="flex-1 bg-white/5 rounded-xl border border-white/10 focus-within:border-indigo-500/50 transition-colors flex items-center">
-                <input
-                  type="text"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Type your reply here..."
-                  className="w-full bg-transparent border-none focus:ring-0 text-sm text-white px-4 py-3 placeholder:text-gray-600"
-                />
+              <div className="flex items-center gap-2 md:gap-4 text-gray-400">
+                <button className="hover:text-white p-2"><Phone size={18} className="md:w-5 md:h-5"/></button>
+                <button className="hover:text-white p-2"><MoreVertical size={18} className="md:w-5 md:h-5"/></button>
+              </div>
+            </div>
+
+            {/* Messages Feed */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-[#050505]">
+              <div className="flex justify-center">
+                <span className="text-[10px] uppercase tracking-widest text-gray-600 font-bold bg-white/5 px-3 py-1 rounded-full">
+                  {selectedChat.createdAt?.toDate().toDateString()}
+                </span>
               </div>
 
-              <button 
-                type="submit" 
-                disabled={!replyText.trim()}
-                className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/20"
-              >
-                <Send size={20} />
-              </button>
-            </form>
-          </div>
+              {messages.map((msg, index) => {
+                const isAdmin = msg.sender === 'admin';
+                return (
+                  <div key={index} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
+                    {!isAdmin && (
+                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 border border-white/10 flex-shrink-0">
+                        <User size={12} className="md:w-3.5 md:h-3.5 text-gray-400" />
+                      </div>
+                    )}
 
-        </div>
-      ) : (
-        /* ================= EMPTY STATE ================= */
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#050505] text-gray-500">
-          <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
-              <Search size={32} className="text-gray-600" />
+                    <div className={`max-w-[75%] md:max-w-[70%] space-y-1 ${isAdmin ? 'items-end flex flex-col' : 'items-start flex flex-col'}`}>
+                      <div className={`px-4 py-2 md:px-5 md:py-3 rounded-2xl text-sm leading-relaxed shadow-sm break-words ${
+                        isAdmin 
+                          ? 'bg-indigo-600 text-white rounded-tr-none' 
+                          : 'bg-[#1a1a1a] text-gray-200 border border-white/5 rounded-tl-none'
+                      }`}>
+                        {msg.text}
+                      </div>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        {formatTime(msg.createdAt)}
+                        {isAdmin && <CheckCheck size={12} className="text-indigo-400" />}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div ref={scrollRef} />
             </div>
+
+            {/* Input Area */}
+            <div className="p-3 md:p-4 bg-[#0A0A0A] border-t border-white/10 flex-shrink-0">
+              <form onSubmit={handleSendReply} className="flex items-end gap-2 md:gap-3 max-w-4xl mx-auto">
+                <button type="button" className="p-2 md:p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                  <ImageIcon size={20} />
+                </button>
+                
+                <div className="flex-1 bg-white/5 rounded-xl border border-white/10 focus-within:border-indigo-500/50 transition-colors flex items-center">
+                  <input
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Type reply..."
+                    className="w-full bg-transparent border-none focus:ring-0 text-sm text-white px-3 py-2 md:px-4 md:py-3 placeholder:text-gray-600"
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={!replyText.trim()}
+                  className="p-2 md:p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/20"
+                >
+                  <Send size={20} />
+                </button>
+              </form>
+            </div>
+          </>
+        ) : (
+          /* ================= EMPTY STATE (Desktop Only) ================= */
+          <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-[#050505] text-gray-500">
+            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
+                <Search size={32} className="text-gray-600" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Select a Conversation</h2>
+            <p className="text-sm max-w-md text-center">
+              Choose an inquiry from the sidebar to view details.
+            </p>
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">Select a Conversation</h2>
-          <p className="text-sm max-w-md text-center">
-            Choose an inquiry from the sidebar to view details and reply to customers.
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

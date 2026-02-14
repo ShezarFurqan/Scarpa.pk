@@ -14,25 +14,23 @@ import Link from 'next/link'
 import { ShopContext } from '../Context/ShopContext'
 
 export default function CartPage() {
-  // Context se real data aur functions nikaale
   const { cart, removeFromCart, updateQuantity, router } = useContext(ShopContext);
 
-  // Calculations: Ab ye direct 'cart' (context) par depend karta hai
   const { subtotal, shipping, total } = useMemo(() => {
     const sub = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
     const ship = sub > 300 || sub === 0 ? 0 : 15.00
     return { subtotal: sub, shipping: ship, total: sub + ship }
   }, [cart])
 
-  // Empty Cart State (Original Design)
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center px-6">
-        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-          <ShoppingBag className="text-gray-500" size={32} />
+      <div className="min-h-screen bg-[#edf1f5] text-gray-900 flex flex-col items-center justify-center px-6">
+        <div className="w-24 h-24 bg-white rounded-[2rem] shadow-xl shadow-[#0145f2]/10 flex items-center justify-center mb-8">
+          <ShoppingBag className="text-[#0145f2]" size={40} />
         </div>
-        <h2 className="text-3xl font-black uppercase tracking-tighter mb-2">Your cart is empty</h2>
-        <Link href="/collection/allproducts" className="bg-white text-black px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs mt-4">
+        <h2 className="text-4xl font-[1000] uppercase tracking-tighter mb-4 text-center">Your cart is empty</h2>
+        <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-8">Looks like you haven't added anything yet</p>
+        <Link href="/collection/allproducts" className="bg-[#0145f2] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-lg shadow-[#0145f2]/20 hover:scale-105 transition-all active:scale-95">
           Start Shopping
         </Link>
       </div>
@@ -40,112 +38,120 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white pt-24 pb-20">
+    <div className="min-h-screen bg-[#edf1f5] text-gray-900 pt-32 pb-20">
       <div className="max-w-4xl mx-auto px-6">
         
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-12 border-b border-white/5 pb-8">
-          <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tighter">
-            Your <span className="text-white/20 italic font-light">Bag</span>
-          </h1>
-          <span className="font-mono text-gray-500 text-sm">{cart.length} Items</span>
+        <div className="flex items-end justify-between mb-12 border-b-4 border-[#0145f2]/10 pb-10">
+          <div>
+            <h1 className="text-5xl lg:text-7xl font-[1000] uppercase tracking-tighter leading-none">
+                Your <span className="text-[#0145f2] italic font-black">Bag</span>
+            </h1>
+            <p className="text-[#0145f2] text-[10px] font-black uppercase tracking-[0.4em] mt-4 opacity-60">Review your selected items</p>
+          </div>
+          <span className="font-black text-[#0145f2] bg-white px-4 py-2 rounded-xl shadow-sm text-sm uppercase tracking-widest border border-gray-100">{cart.length} Items</span>
         </div>
 
         {/* PRODUCTS SECTION */}
-        <div className="space-y-6 mb-16">
+        <div className="space-y-6 mb-12">
           {cart.map((item) => (
             <div 
               key={`${item.id}-${item.size}`} 
-              className="flex flex-col sm:flex-row gap-6 p-6 rounded-3xl bg-white/[0.02] border border-white/5 group transition-all hover:border-white/10"
+              className="flex flex-col sm:flex-row gap-6 p-6 rounded-[2.5rem] bg-white border border-white shadow-[0_10px_40px_rgba(0,0,0,0.03)] group transition-all hover:shadow-xl hover:shadow-[#0145f2]/5"
             >
-              <div className="w-full sm:w-32 aspect-square rounded-2xl overflow-hidden bg-black flex-shrink-0">
-                <img src={item?.images[0]} alt={item.title} className="w-full h-full object-cover opacity-80" />
+              <div className="w-full sm:w-36 aspect-square rounded-[1.5rem] overflow-hidden bg-[#edf1f5] flex-shrink-0 border-4 border-[#edf1f5]">
+                <img src={item?.images[0]} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               </div>
 
-              <div className="flex-1 flex flex-col justify-between">
+              <div className="flex-1 flex flex-col justify-between py-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-lg font-bold uppercase tracking-tight">{item.title}</h3>
-                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Size: {item.size}</p>
+                    <h3 className="text-xl font-black uppercase tracking-tight text-gray-900">{item.title}</h3>
+                    <p className="inline-block bg-[#edf1f5] text-[#0145f2] text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg mt-2">Size: {item.size}</p>
                   </div>
-                  <p className="font-mono font-bold text-lg">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-black text-2xl text-gray-900 tracking-tighter">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>
 
-                <div className="flex items-center justify-between mt-6">
-                  {/* Updated Quantity Logic */}
-                  <div className="flex items-center border border-white/10 rounded-full px-3 py-1 bg-black">
+                <div className="flex items-center justify-between mt-8">
+                  <div className="flex items-center bg-[#edf1f5] rounded-2xl p-1.5 border border-gray-100">
                     <button 
                       onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)} 
-                      className="p-1 hover:text-emerald-400"
+                      className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:text-[#0145f2] transition-colors"
                     >
-                      <Minus size={14} />
+                      <Minus size={16} strokeWidth={3} />
                     </button>
-                    <span className="w-10 text-center font-mono font-bold text-sm">{item.quantity}</span>
+                    <span className="w-12 text-center font-black text-gray-900 text-sm">{item.quantity}</span>
                     <button 
                       onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)} 
-                      className="p-1 hover:text-emerald-400"
+                      className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:text-[#0145f2] transition-colors"
                     >
-                      <Plus size={14} />
+                      <Plus size={16} strokeWidth={3} />
                     </button>
                   </div>
                   
-                  {/* Updated Remove Logic */}
                   <button 
                     onClick={() => removeFromCart(item.id, item.size)} 
-                    className="flex items-center gap-2 text-gray-600 hover:text-rose-500 text-[10px] font-bold uppercase tracking-widest"
+                    className="flex items-center gap-2 text-gray-300 hover:text-red-500 transition-colors text-[10px] font-black uppercase tracking-[0.2em]"
                   >
-                    <Trash2 size={14} /> Remove
+                    <Trash2 size={16} /> Remove
                   </button>
                 </div>
               </div>
             </div>
           ))}
-
-          <div className="pt-4 text-center">
-            <Link href="/collection/allproducts" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
-              <ArrowLeft size={14} /> Continue Shopping
-            </Link>
-          </div>
         </div>
 
-        {/* SUMMARY SECTION */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-[40px] p-8 md:p-12">
+        {/* REFINED SUMMARY SECTION */}
+        <div className="bg-white rounded-[3rem] p-10 md:p-14 shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-white">
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-8 text-center">Order Summary</h2>
+            <h2 className="text-3xl font-[1000] uppercase tracking-tighter mb-10 text-center text-gray-900">Order Summary</h2>
             
             <div className="space-y-6">
-              <div className="flex justify-between text-gray-400">
-                <span className="uppercase tracking-widest text-xs font-bold">Subtotal</span>
-                <span className="text-white font-mono">${subtotal.toFixed(2)}</span>
+              <div className="flex justify-between items-center border-b border-gray-50 pb-6">
+                <span className="uppercase tracking-[0.2em] text-[10px] font-black text-gray-400">Subtotal</span>
+                <span className="text-xl font-black tracking-tight text-gray-900">${subtotal.toFixed(2)}</span>
               </div>
               
-              <div className="flex justify-between text-gray-400">
-                <span className="uppercase tracking-widest text-xs font-bold">Shipping</span>
-                <span className="text-white font-mono">{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+              <div className="flex justify-between items-center border-b border-gray-50 pb-6">
+                <span className="uppercase tracking-[0.2em] text-[10px] font-black text-gray-400">Shipping Charge</span>
+                <span className={`text-xl font-black tracking-tight ${shipping === 0 ? 'text-gray-900' : 'text-gray-900'}`}>
+                  {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+                </span>
               </div>
 
               {shipping > 0 && (
-                <div className="bg-emerald-500/10 text-emerald-500 text-[10px] p-3 rounded-xl text-center font-bold uppercase tracking-widest">
-                  Add ${(300 - subtotal).toFixed(2)} more for FREE SHIPPING
+                <div className="bg-[#0145f2]/5 border border-[#0145f2]/10 text-[#0145f2] text-[10px] p-4 rounded-2xl text-center font-black uppercase tracking-[0.15em]">
+                  Spend <span className="underline underline-offset-4 text-[#0145f2]">${(300 - subtotal).toFixed(2)}</span> more to unlock <span className="italic">Free Shipping</span>
                 </div>
               )}
 
-              <div className="pt-6 border-t border-white/10 flex justify-between items-end">
-                <span className="text-xl uppercase font-black">Total Amount</span>
-                <span className="text-4xl font-mono font-black text-white">${total.toFixed(2)}</span>
+              <div className="pt-8 flex justify-between items-end">
+                <div>
+                    <span className="text-[10px] uppercase font-black tracking-[0.3em] text-[#0145f2]">Total Payable</span>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 italic">Includes all taxes</p>
+                </div>
+                <span className="text-5xl md:text-6xl font-[1000] tracking-tighter italic text-gray-900">${total.toFixed(2)}</span>
               </div>
 
-              <div className="pt-8 flex flex-col gap-4">
-                <button onClick={()=>{router.push("/checkout")}} className="w-full bg-white text-black py-6 rounded-full font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:bg-gray-200 transition-all active:scale-[0.98]">
-                  <CreditCard size={18} /> Proceed to Checkout
+              <div className="pt-10 flex flex-col gap-6">
+                {/* Checkout Button - Now Solid Blue */}
+                <button 
+                  onClick={()=>{router.push("/checkout")}} 
+                  className="w-full bg-[#0145f2] text-white py-7 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-4 hover:bg-blue-700 transition-all active:scale-[0.98] shadow-2xl shadow-[#0145f2]/20"
+                >
+                  <CreditCard size={20} strokeWidth={3} /> Proceed to Checkout
                 </button>
                 
-                <div className="flex flex-wrap justify-center gap-6 opacity-30">
-                  <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
-                    <Truck size={14} /> Express Delivery
+                <Link href="/collection/allproducts" className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-600 transition-colors">
+                  <ArrowLeft size={14} className="inline mr-2" /> Continue Shopping
+                </Link>
+
+                <div className="flex flex-wrap justify-center gap-8 opacity-40 pt-4">
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-900">
+                    <Truck size={16} /> Express Delivery
                   </div>
-                  <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
-                    <ShieldCheck size={14} /> Secure Checkout
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-900">
+                    <ShieldCheck size={16} /> SSL Secured
                   </div>
                 </div>
               </div>

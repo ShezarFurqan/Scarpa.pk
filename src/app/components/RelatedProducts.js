@@ -52,40 +52,57 @@ export const getRelatedProducts = (currentProduct, allProducts) => {
 
 const RelatedProducts = ({ currentProduct, allProducts }) => {
   // Memoize taake har render par calculation na ho
-  const recommendations = useMemo(() => 
-    getRelatedProducts(currentProduct, allProducts), 
+  const recommendations = useMemo(() =>
+    getRelatedProducts(currentProduct, allProducts),
     [currentProduct, allProducts]
   );
 
   if (recommendations.length === 0) return null;
 
   return (
-    <section className="pt-20 border-t mt-16 border-white/5 bg-[#050505]">
-      <div className="container mx-auto px-6">
-        
-        {/* Header Section */}
-        <div className="flex flex-col mb-12">
-          <span className="text-blue-500 font-mono text-xs uppercase tracking-[0.3em] mb-2">
-            AI Personalized
-          </span>
-          <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">
-            You Might <span className="text-white/30">Also Like</span>
-          </h3>
+    <section className="pt-24 border-t border-gray-200 mt-24 bg-transparent">
+      <div className="container mx-auto px-4 md:px-8">
+
+        {/* Header Section: Modern & Clean */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div className="space-y-2">
+            <span className="text-[#0145f2] font-black text-[10px] uppercase tracking-[0.4em] ml-1">
+              AI PERSONALIZED
+            </span>
+            <h3 className="text-4xl md:text-5xl lg:text-6xl font-[950] uppercase tracking-tighter text-gray-900 leading-none">
+              You Might <span className="text-gray-300">Also Like</span>
+            </h3>
+          </div>
+
+          {/* Decorative count or link */}
+          <div className="hidden md:flex items-center gap-4 pb-2">
+            <div className="h-px w-20 bg-gray-200" />
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              {recommendations.length} Recommendations
+            </span>
+          </div>
         </div>
 
-        {/* Grid using your ProductCard */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-10">
           {recommendations.map((product) => (
-            <ProductCard 
-              key={product.id}
-              productId={product.id}
-              title={product.title}
-              price={product.price}
-              fakePrice={product.fakePrice}
-              image={product.images?.[0] || product.image}
-            //   status={product.status || (product.relevanceScore > 70 ? "Top Pick" : null)}
-            />
+            <div key={product.id} className="group transition-transform duration-500 hover:-translate-y-2">
+              <ProductCard
+                productId={product.id}
+                title={product.title}
+                price={product.price}
+                fakePrice={product.fakePrice}
+                image={product.images?.[0] || product.image}
+                // Blue theme focus colors ko card ke andar pass karne ke liye styling:
+                className="bg-white rounded-[2.5rem] shadow-sm border border-white hover:shadow-[0_30px_60px_-15px_rgba(1,69,242,0.1)] transition-all duration-500"
+              />
+            </div>
           ))}
+        </div>
+
+        {/* Optional: Subtle Bottom Accent */}
+        <div className="mt-20 flex justify-center">
+          <div className="w-24 h-1 bg-gradient-to-r from-transparent via-[#0145f2]/20 to-transparent rounded-full" />
         </div>
       </div>
     </section>
@@ -93,3 +110,5 @@ const RelatedProducts = ({ currentProduct, allProducts }) => {
 };
 
 export default RelatedProducts;
+
+

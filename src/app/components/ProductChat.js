@@ -10,7 +10,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { Send, MessageCircle, X, User } from 'lucide-react';
 import GuestModal from './GuestModel';
 
-const ProductChat = ({ product }) => {
+const ProductChat = ({ product, open, setOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -19,7 +19,6 @@ const ProductChat = ({ product }) => {
   const [conversationId, setConversationId] = useState(null);
   const scrollRef = useRef(null);
 
-  // 1. Auth State Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -27,10 +26,8 @@ const ProductChat = ({ product }) => {
     return () => unsubscribe();
   }, []);
 
-  // 2. FIXED: Auto-Check for existing conversation on Load/Refresh
   useEffect(() => {
     const checkExisting = async () => {
-      // Refresh ke baad localStorage ya Auth se ID check karein
       const uId = currentUser?.uid || null;
       const gId = typeof window !== 'undefined' ? localStorage.getItem('guestId') : null;
       
@@ -39,18 +36,14 @@ const ProductChat = ({ product }) => {
       try {
         const convRef = collection(db, "conversations");
         let q;
-        
         if (uId) {
           q = query(convRef, where("productId", "==", product.id), where("userId", "==", uId));
         } else {
-          // Guest ke liye hum guestId meta-data dhoondenge (ya guestEmail agar aapne store kiya hai)
-          // Recommended: query by productId and guestId
           q = query(convRef, where("productId", "==", product.id), where("userId", "==", null));
         }
 
         const snap = await getDocs(q);
         if (!snap.empty) {
-          // Agar humein mil jaye conversation, to ID set kar dein taake onSnapshot chal jaye
           setConversationId(snap.docs[0].id);
         }
       } catch (err) {
@@ -59,9 +52,8 @@ const ProductChat = ({ product }) => {
     };
 
     checkExisting();
-  }, [currentUser, product.id]); // Jaise hi user load ho ya product badle
+  }, [currentUser, product.id]);
 
-  // 3. Real-time Message Listener (Same as before, works because of fix above)
   useEffect(() => {
     if (!conversationId) return;
 
@@ -77,9 +69,8 @@ const ProductChat = ({ product }) => {
     return () => unsubscribe();
   }, [conversationId]);
 
-  // 4. Initialize or Create (Called on click or modal success)
   const initializeConversation = async (guestData = null) => {
-    if (conversationId) return; // Already exists
+    if (conversationId) return;
 
     try {
       const uId = currentUser?.uid || null;
@@ -117,6 +108,12 @@ const ProductChat = ({ product }) => {
     }
   };
 
+  useEffect(()=>{
+    if(open) {
+      handleOpenChat()
+    }
+  },[open])
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputText.trim() || !conversationId) return;
@@ -145,33 +142,42 @@ const ProductChat = ({ product }) => {
 
   return (
     <>
+      {/* Floating Button Theme Change */}
       <button 
         onClick={handleOpenChat}
-        className="fixed bottom-6 right-6 bg-black text-white p-4 rounded-full shadow-2xl z-40 border border-white/10"
+        className="fixed bottom-6 right-6 bg-[#0145f2] text-white p-4 rounded-full shadow-[0_10px_30px_rgba(1,69,242,0.3)] z-40 hover:scale-110 transition-transform active:scale-95 "
       >
         <MessageCircle size={24} />
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[90vw] md:w-[400px] h-[500px] bg-[#0A0A0A] border border-white/10 rounded-3xl shadow-2xl flex flex-col z-50 overflow-hidden">
-          {/* Header */}
-          <div className="p-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
+        <div className="fixed bottom-24 right-6 w-[92vw] md:w-[380px] h-[520px] bg-[#edf1f5] rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          
+          {/* Header - Vibrant Blue Background */}
+          <div className="p-5 bg-[#0145f2] flex items-center justify-between shadow-md">
             <div className="flex items-center gap-3">
-              <img src={product.images[0]} className="w-10 h-10 rounded-lg object-cover" alt="" />
+              <div className="relative">
+                <img src={product.images[0]} className="w-11 h-11 rounded-xl object-cover border-2 border-white/20 shadow-sm" alt="" />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-[#0145f2] rounded-full shadow-sm"></div>
+              </div>
               <div>
-                <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Inquiry</h4>
-                <p className="text-sm font-bold text-white truncate w-40">{product.title}</p>
+                <h4 className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-1">Inquiry Support</h4>
+                <p className="text-sm font-black text-white truncate w-44 leading-tight">{product.title}</p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-white"><X size={20} /></button>
+            <button onClick={() =>{ setOpen(false); setIsOpen(false)}} className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
+              <X size={18} />
+            </button>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Messages Area - Light Gray/Blueish Background */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#edf1f5]">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-3 rounded-2xl text-xs ${
-                  m.sender === 'user' ? 'bg-white text-black' : 'bg-white/5 text-gray-300'
+                <div className={`max-w-[80%] p-3.5 px-4 rounded-[1.25rem] text-[13px] font-medium shadow-sm leading-relaxed ${
+                  m.sender === 'user' 
+                    ? 'bg-[#0145f2] text-white rounded-tr-none' 
+                    : 'bg-white text-gray-700 border border-gray-100 rounded-tl-none'
                 }`}>
                   {m.text}
                 </div>
@@ -180,16 +186,24 @@ const ProductChat = ({ product }) => {
             <div ref={scrollRef} />
           </div>
 
-          {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="p-4 bg-black border-t border-white/5 flex gap-2">
-            <input 
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none"
-            />
-            <button type="submit" className="bg-white text-black p-2 rounded-xl"><Send size={18} /></button>
-          </form>
+          {/* Input Area - White & Clean */}
+          <div className="p-4 bg-white border-t border-gray-100">
+            <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+              <input 
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Ask us anything..."
+                className="flex-1 bg-[#edf1f5] border-none rounded-2xl px-5 py-3 text-xs text-gray-800 font-bold outline-none focus:ring-2 focus:ring-[#0145f2]/10 transition-all placeholder:text-gray-400"
+              />
+              <button 
+                type="submit" 
+                className="bg-[#0145f2] text-white p-3 rounded-2xl shadow-lg shadow-[#0145f2]/20 hover:scale-105 active:scale-95 transition-all"
+              >
+                <Send size={18} />
+              </button>
+            </form>
+            <p className="text-[9px] text-center mt-3 text-gray-400 font-black uppercase tracking-widest opacity-50">Typical response time: 5 mins</p>
+          </div>
         </div>
       )}
 

@@ -1,107 +1,91 @@
 "use client";
 import React, { useContext } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, MoveRight } from 'lucide-react';
 import { ShopContext } from '../Context/ShopContext';
 
-/**
- * Categories Section
- * Positioned below the Hero to drive departmental traffic.
- * Uses 'group-hover' for high-end interaction and 'overflow-hidden' for clean scaling.
- */
 const Categories = () => {
-  // 1. Context se products nikale
   const { router, products } = useContext(ShopContext);
 
-  // 2. Real Count Calculate karne ke liye configuration
-  // Note: Make sure aapke database me category spelling exact "Men", "Women", "Kids" ho
   const categories = [
-    {
-      id: 1,
-      name: "Mens", // Database category value
-      displayTitle: "Mens", // UI Title
-      image: "/images/men.png", 
-      gridSpan: "lg:col-span-1"
-    },
-    {
-      id: 2,
-      name: "Womens",
-      displayTitle: "Womens",
-      image: "/images/women.png", 
-      gridSpan: "lg:col-span-1"
-    },
-    {
-      id: 3,
-      name: "Kids",
-      displayTitle: "Kids",
-      image: "/images/kids.png", 
-      gridSpan: "lg:col-span-1"
-    }
+    { id: 1, name: "nike", displayTitle: "Nike", image: "/images/gemini1.png" },
+    { id: 2, name: "puma", displayTitle: "Puma", image: "/images/gemini.png" },
+    { id: 3, name: "adidas", displayTitle: "Adidas", image: "/images/gemini1.png" },
+    { id: 4, name: "newbalance", displayTitle: "New Balance", image: "/images/gemini.png" },
+    { id: 5, name: "brooks", displayTitle: "Brooks", image: "/images/gemini1.png" },
+    { id: 6, name: "skechers", displayTitle: "Skechers", image: "/images/gemini.png" },
   ];
 
   return (
-    <section className="w-full bg-[#050505] pb-16">
-      <div className="container mx-auto px-6 md:px-0">
+    <section className="w-full bg-[#edf1f5] py-20 lg:py-16 overflow-hidden font-sans">
+      <div className="container mx-auto px-6 lg:px-0">
         
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div className="max-w-xl">
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-4">
-              SHOP BY <span className="text-white/40 italic">SERIES</span>
+        {/* --- LUXURY HEADER --- */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-10">
+          <div className="max-w-2xl space-y-6">
+            <div className="flex items-center gap-4">
+              <span className="h-[3px] w-12 bg-[#0145f2] rounded-full" />
+              <p className="text-[#0145f2] text-[10px] font-black uppercase tracking-[0.4em]">Elite Partnerships</p>
+            </div>
+            <h2 className="text-5xl md:text-8xl font-[1000] text-gray-900 tracking-[-0.05em] uppercase leading-[0.85]">
+              THE <span className="text-[#0145f2] italic">BRANDS</span> <br /> 
+              <span className="text-gray-300">OF SPEED</span>
             </h2>
-            <p className="text-gray-500 text-sm md:text-base font-light">
-              Explore specialized gear tailored for every explorer. From elite performance to youth discovery.
-            </p>
           </div>
-          <button onClick={()=> router.push('/collection')} className="hidden md:flex items-center gap-2 text-white/50 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest pb-1 border-b border-white/10 hover:border-white">
-            View All Collections <ArrowRight size={14} />
+          
+          <button 
+            onClick={() => router.push('/collection')}
+            className="group flex items-center gap-4 text-gray-900 font-black text-xs uppercase tracking-widest transition-all hover:text-[#0145f2]"
+          >
+            All Collections 
+            <div className="w-12 h-12 rounded-full border-2 border-gray-200 flex items-center justify-center group-hover:border-[#0145f2] group-hover:bg-[#0145f2] group-hover:text-white transition-all duration-500">
+              <MoveRight size={20} />
+            </div>
           </button>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories?.map((cat) => {
-            
-            // 3. Har category ka real count nikalna
-            const productCount = products?.filter(item => item.category === cat.name).length;
+        {/* --- 3 COLUMN BRAND GRID --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          {categories.map((cat) => {
+            const productCount = products?.filter(item => item.brand?.toLowerCase() === cat.name).length;
 
             return (
               <div 
-                onClick={() => { router.push(`/collection/${cat.name.toLowerCase()}`) }} // Lowercase URL friendly
                 key={cat.id}
-                className="group relative aspect-[4/5] overflow-hidden rounded-3xl bg-[#111] cursor-pointer"
+                onClick={() => router.push(`/collection/${cat.name}`)}
+                className="group relative aspect-[4/5] rounded-[40px] overflow-hidden bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] transition-all duration-700 hover:-translate-y-3"
               >
-                {/* Image with smooth zoom */}
+                {/* Image */}
                 <img 
-                  src={cat.image}
+                  src={cat.image} 
                   alt={cat.displayTitle}
-                  className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-[2.5s] ease-out group-hover:scale-110"
                 />
 
-                {/* Dynamic Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                {/* REFINED OVERLAY: 50% lighter & subtle blue tint on hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-90 transition-all duration-700 group-hover:from-[#0145f2]/40" />
+                
+                {/* Content */}
+                <div className="absolute inset-0 p-12 flex flex-col justify-end z-10">
+                  <div className="space-y-1 transform transition-transform duration-500 group-hover:-translate-y-2">
+                    <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.3em]">
+                      {productCount || "Explore"} Products
+                    </p>
+                    <h3 className="text-5xl font-[1000] text-white tracking-tighter uppercase italic leading-none pb-4">
+                      {cat.displayTitle}
+                    </h3>
+                  </div>
 
-                {/* Content Overlay */}
-                <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                  <span className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                    {/* 4. Showing Real Count */}
-                    {productCount} Products
-                  </span>
-                  
-                  <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-6">
-                    {cat.displayTitle}
-                  </h3>
-
-                  {/* CTA Button: Slides up on hover */}
-                  <div className="overflow-hidden">
-                    <div className="flex items-center gap-2 text-black bg-white px-6 py-3 rounded-full w-fit font-bold text-xs transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
-                      Shop Now
-                      <ArrowRight size={16} />
+                  {/* Glassmorphism Button: More refined */}
+                  <div className="pt-4 overflow-hidden">
+                    <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-2xl w-fit font-black text-[10px] uppercase tracking-widest shadow-xl transform translate-y-[160%] group-hover:translate-y-0 transition-transform duration-500 ease-out group-hover:bg-white group-hover:text-[#0145f2]">
+                      Explore
+                      <ArrowRight size={16} strokeWidth={3} />
                     </div>
                   </div>
                 </div>
 
-                {/* Subtle Inner Glow (Mobile focus) */}
-                <div className="absolute inset-0 border border-white/5 group-hover:border-white/20 transition-colors rounded-3xl pointer-events-none" />
+                {/* Inner Protective Glass Border */}
+                <div className="absolute inset-0 border-[1px] border-white/10 rounded-[40px] pointer-events-none" />
               </div>
             );
           })}

@@ -12,7 +12,9 @@ import { db } from '../../firebase'
 import DeleteConfirmationModal from '@/app/components/DeleteConfirmationModal'
 
 // --- CONSTANTS FOR DROPDOWNS ---
-const CATEGORIES = ['Mens', 'Womens', 'Kids']
+const CATEGORIES = ['None','Sneakers', 'Running Shoes', 'Casual Shoes', 'Sports Shoes', 'Premium Collection']
+const BRAND = ['None', 'Nike', 'Puma', 'Adidas', 'New Balance', 'Brooks', 'Sketchers']
+const CONDITIONS = ['Premium', 'Excellent', 'Very Good'];
 const PRODUCT_STATUSES = [
   'None',
   'Trending',
@@ -74,8 +76,9 @@ export default function ProductManagement() {
     price: '',
     fakePrice: '',
     qty: '',
-    category: 'Mens',
+    category: 'None',
     status: 'None',
+    condition: 'premium',
     brand: '',
     description: '',
     images: [],
@@ -415,8 +418,8 @@ export default function ProductManagement() {
                       type="button"
                       onClick={() => toggleSize(size)}
                       className={`py-3 px-2 rounded-xl border text-[10px] font-bold transition-all ${newProduct.sizes?.includes(size)
-                          ? 'bg-white text-black border-white'
-                          : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'
+                        ? 'bg-white text-black border-white'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'
                         }`}
                     >
                       {size}
@@ -451,16 +454,35 @@ export default function ProductManagement() {
               </div>
 
               {/* PURCHASING PRICE FIELD */}
-              <input  type="number" value={newProduct.purchasingPrice} onChange={(e) => setNewProduct({ ...newProduct, purchasingPrice: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30" placeholder="Purchasing Price (Cost)" />
+              <input type="number" value={newProduct.purchasingPrice} onChange={(e) => setNewProduct({ ...newProduct, purchasingPrice: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30" placeholder="Purchasing Price (Cost)" />
 
               <div className="grid grid-cols-2 gap-4">
-                <input  type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Selling Price" />
+                <input type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Selling Price" />
                 <input type="number" value={newProduct.fakePrice} onChange={(e) => setNewProduct({ ...newProduct, fakePrice: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Fake Price" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Brand</label>
+                  <select
+                    value={newProduct.brand}
+                    onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
+                  >
+                    {BRAND.map(c => <option key={c} value={c} className="bg-[#0D0D0D]">{c}</option>)}
+                  </select>
+                </div>
+                 <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Condition</label>
+                  <select
+                    value={newProduct.condition}
+                    onChange={(e) => setNewProduct({ ...newProduct, condition: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
+                  >
+                    {CONDITIONS.map(c => <option key={c} value={c} className="bg-[#0D0D0D]">{c}</option>)}
+                  </select>
+                </div>
                 <input type="number" value={newProduct.qty} onChange={(e) => setNewProduct({ ...newProduct, qty: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Qty" />
-                <input value={newProduct.brand} onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Brand" />
               </div>
 
               <textarea rows="4" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none" placeholder="Description" />

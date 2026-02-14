@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, User, Mail, MessageSquare } from 'lucide-react';
+import { X, User, Mail, MessageSquare, ShieldCheck } from 'lucide-react';
 
 const GuestModal = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({ name: '', email: '' });
@@ -14,42 +14,64 @@ const GuestModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-6">
-      <div className="bg-[#0A0A0A] border border-white/10 w-full max-w-md rounded-[2.5rem] p-8 relative animate-in fade-in zoom-in-95">
-        <button onClick={onClose} className="absolute top-6 right-6 text-gray-500 hover:text-white">
-          <X size={24} />
+    <div className="fixed inset-0 bg-[#0145f2]/10 backdrop-blur-md z-[60] flex items-center justify-center p-6">
+      <div className="bg-[#edf1f5] border border-white w-full max-w-md rounded-[3rem] p-8 md:p-10 relative shadow-[0_30px_100px_rgba(0,0,0,0.15)] animate-in fade-in zoom-in-95 duration-300">
+        
+        {/* Close Button */}
+        <button 
+          onClick={onClose} 
+          className="absolute top-8 right-8 text-gray-400 hover:text-[#0145f2] transition-colors p-2 hover:bg-white rounded-full"
+        >
+          <X size={20} />
         </button>
 
-        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">Connect with Us</h2>
-        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-8">Please provide details to start chat</p>
+        {/* Icon & Title */}
+        <div className="mb-8">
+            <div className="w-14 h-14 bg-[#0145f2] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#0145f2]/20 mb-6">
+                <MessageSquare size={28} />
+            </div>
+            <h2 className="text-3xl font-[900] uppercase tracking-tighter text-gray-900 leading-none">
+                Get in Touch
+            </h2>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0145f2] mt-2 opacity-70">
+                Identify yourself to start chat
+            </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={16} />
+          <div className="relative group">
+            <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0145f2] transition-colors" size={18} />
             <input 
               required
-              placeholder="Full Name"
-              className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-white/20"
+              placeholder="YOUR FULL NAME"
+              className="w-full bg-white border border-gray-100 rounded-2xl py-5 pl-14 pr-6 text-xs font-bold text-gray-900 outline-none focus:ring-4 focus:ring-[#0145f2]/5 focus:border-[#0145f2] transition-all placeholder:text-gray-300 placeholder:font-black"
               onChange={(e) => setFormData({...formData, name: e.target.value})}
             />
           </div>
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={16} />
+
+          <div className="relative group">
+            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0145f2] transition-colors" size={18} />
             <input 
               required
               type="email"
-              placeholder="Email Address"
-              className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-white/20"
+              placeholder="EMAIL ADDRESS"
+              className="w-full bg-white border border-gray-100 rounded-2xl py-5 pl-14 pr-6 text-xs font-bold text-gray-900 outline-none focus:ring-4 focus:ring-[#0145f2]/5 focus:border-[#0145f2] transition-all placeholder:text-gray-300 placeholder:font-black"
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
           </div>
+
           <button 
             type="submit"
-            className="w-full bg-white text-black font-black uppercase text-xs tracking-widest py-5 rounded-2xl hover:invert transition-all mt-4"
+            className="w-full bg-[#0145f2] text-white font-[900] uppercase text-[11px] tracking-[0.2em] py-5 rounded-2xl shadow-xl shadow-[#0145f2]/20 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all mt-6"
           >
             Start Conversation
           </button>
         </form>
+
+        <div className="mt-8 flex items-center justify-center gap-2 opacity-40">
+            <ShieldCheck size={14} className="text-gray-900" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-900">End-to-end Encrypted</span>
+        </div>
       </div>
     </div>
   );

@@ -1,64 +1,94 @@
 "use client";
-import React, { useContext, useState } from 'react';
-import { ShoppingBag, Heart, TrendingUp } from 'lucide-react';
-import { ShopContext } from '../Context/ShopContext';
+import React, { useContext, useEffect } from "react";
+import { ArrowUpRight } from "lucide-react";
+import { ShopContext } from "../Context/ShopContext";
 
-const ProductCard = ({ 
-  image, 
+const ProductCard = ({
+  image,
   title,
-  price ,
+  brand,
+  size,
+  price,
   fakePrice,
-  status ,
-  productId
+  status,
+  productId,
 }) => {
-  const { router } = useContext(ShopContext)
+  const { router } = useContext(ShopContext);
 
   return (
-    <div onClick={()=>{router.push(`/product/${productId}`)}} className="group relative w-full bg-[#0a0a0a] rounded-2xl overflow-hidden border border-white/5 transition-all duration-500 hover:border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)]">
-      
-      {/* 1. Image Container */}
-      <div className="relative aspect-square overflow-hidden bg-[#141414]">
-        {/* Status Badge - Ultra Clean */}
+    <div
+      onClick={() => router.push(`/product/${productId}`)}
+      className="group relative w-full bg-white rounded-[32px] overflow-hidden border border-gray-100 hover:border-[#0145f2]/20 transition-all duration-500 hover:shadow-[0_30px_60px_-20px_rgba(0,0,0,0.1)] cursor-pointer flex flex-col h-full"
+    >
+      {/* 1. IMAGE SECTION (Full Width & Top-Aligned) */}
+      <div className="relative w-full aspect-[1/1.1] bg-[#edf1f5] overflow-hidden">
+        {/* Status Badge - Floating Top-Left */}
         {status && (
-          <div className="absolute top-3 left-3 z-20">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
-              <TrendingUp size={10} className="text-blue-400" />
-              <span className="text-[9px] font-bold text-white uppercase tracking-tighter">{status}</span>
-            </div>
+          <div className="absolute top-4 left-4 z-20">
+            <span className="bg-[#0145f2] text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-tighter shadow-lg shadow-blue-600/20">
+              {status}
+            </span>
           </div>
         )}
-        {/* Product Image */}
-        <img 
-          src={image} 
+
+        {/* Brand Tag - Floating Top-Right */}
+        {brand && (
+          <div className="absolute top-4 right-4 z-20">
+            <span className="bg-white/80 backdrop-blur-md text-gray-900 font-black text-[9px] px-3 py-1.5 rounded-full shadow-sm tracking-[0.1em] uppercase border border-white/50">
+              {brand}
+            </span>
+          </div>
+        )}
+
+        {/* Full Width Image - No padding at top */}
+        <img
+          src={image}
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.33,1,0.68,1)] group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
 
+        {/* Hover Icon Overlay */}
+        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      {/* 2. Product Info */}
-      <div className="p-4 flex flex-col gap-3">
-        <div className="flex justify-between items-start gap-2">
-          <h3 className="text-sm md:text-base font-medium text-white/90 leading-tight group-hover:text-white transition-colors">
-            {title}
-          </h3>
-          <span className="text-sm md:text-base font-bold text-white shrink-0">
-            {`Rs.${price}`}
-          </span>
+      {/* 2. INFO SECTION */}
+      <div className="p-5 flex flex-col flex-1 bg-white">
+        {/* Title */}
+        <h3 className="text-[18px] font-[1000] text-gray-900 leading-tight uppercase tracking-tight line-clamp-1 mb-3">
+          {title}
+        </h3>
+
+        {/* Sizes (Professional Pills) */}
+        <div className="flex gap-1.5 flex-wrap mb-2">
+         
+            <span
+              className="text-[10px] font-bold bg-gray-50 text-gray-500 px-3 py-1.5 rounded-lg border border-[#0145f2]/10 group-hover:border-[#0145f2]/20 transition-all"
+            >
+              {size}
+            </span>
+        
         </div>
 
-        {/* 3. CTA Button - Visual Strength */}
-        <button className="relative w-full overflow-hidden bg-white text-black py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.97] hover:bg-gray-100 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
-          <ShoppingBag size={14} strokeWidth={2.5} />
-          Add to Cart
-          
-          {/* Shine Animation Effect on Hover */}
-          <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shine_1s_ease-in-out]" />
-        </button>
-      </div>
+        {/* Price & Button Row */}
+        <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
+          <div className="flex flex-col">
+            {fakePrice && (
+              <span className="text-[12px] text-gray-400 line-through font-bold">
+                Rs.{Number(fakePrice).toLocaleString()}
+              </span>
+            )}
+            <span className="text-xl font-[1000] text-[#0145f2]">
+              Rs.{Number(price).toLocaleString()}
+            </span>
+          </div>
 
-      {/* Premium Border Glow */}
-      <div className="absolute inset-0 border border-white/0 group-hover:border-white/10 rounded-2xl pointer-events-none transition-colors duration-500" />
+          {/* Minimalist View Button */}
+          <div className="h-11 w-11 rounded-2xl bg-[#0145f2] text-white flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:bg-[#0145f2] group-hover:w-28 transition-all duration-500 overflow-hidden">
+             <span className="hidden group-hover:block text-[10px] font-black uppercase tracking-widest ml-2 whitespace-nowrap">View Item</span>
+             <ArrowUpRight size={18} className="min-w-[44px]" strokeWidth={3} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
