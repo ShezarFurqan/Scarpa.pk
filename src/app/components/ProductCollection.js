@@ -92,6 +92,7 @@ const ProductsCollection = ({ collectionName }) => {
                 fakePrice={product.fakePrice}
                 size={product.sizes[0]}
                 product={product} 
+                quantity={Number(product.qty)}
                 title={product.title} 
                 price={product.price}
                 productId={product.id}

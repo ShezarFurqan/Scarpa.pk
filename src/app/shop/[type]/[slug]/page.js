@@ -206,6 +206,7 @@ export default function CollectionPage({ params }) {
               <ProductCard
                 size={product.sizes[0]}
                 key={product.id}
+                quantity={Number(product.qty)}
                 fakePrice={product.fakePrice}
                 productId={product.id}
                 title={product.title}
