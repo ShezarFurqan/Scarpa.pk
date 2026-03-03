@@ -7,12 +7,12 @@ const Categories = () => {
   const { router, products } = useContext(ShopContext);
 
   const categories = [
-    { id: 1, name: "nike", displayTitle: "Nike", image: "/images/gemini1.png" },
-    { id: 2, name: "puma", displayTitle: "Puma", image: "/images/gemini.png" },
-    { id: 3, name: "adidas", displayTitle: "Adidas", image: "/images/gemini1.png" },
-    { id: 4, name: "newbalance", displayTitle: "New Balance", image: "/images/gemini.png" },
-    { id: 5, name: "brooks", displayTitle: "Brooks", image: "/images/gemini1.png" },
-    { id: 6, name: "skechers", displayTitle: "Skechers", image: "/images/gemini.png" },
+    { id: 1, name: "nike", displayTitle: "Nike", image: "/images/Nike.png" },
+    { id: 2, name: "puma", displayTitle: "Puma", image: "/images/puma.png" },
+    { id: 3, name: "adidas", displayTitle: "Adidas", image: "/images/adidas.png" },
+    { id: 4, name: "newbalance", displayTitle: "New Balance", image: "/images/newbalance.png" },
+    { id: 5, name: "brooks", displayTitle: "Brooks", image: "/images/brooks.png" },
+    { id: 6, name: "skechers", displayTitle: "Skechers", image: "/images/sketchers.png" },
   ];
 
   return (
@@ -51,7 +51,7 @@ const Categories = () => {
             return (
               <div 
                 key={cat.id}
-                onClick={() => router.push(`/collection/${cat.name}`)}
+                onClick={() => router.push(`/shop/brand/${cat.name}`)}
                 className="group relative aspect-[4/5] rounded-[40px] overflow-hidden bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] transition-all duration-700 hover:-translate-y-3"
               >
                 {/* Image */}
