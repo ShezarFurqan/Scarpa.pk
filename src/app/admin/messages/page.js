@@ -4,11 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebase'; 
 import { 
   collection, query, orderBy, onSnapshot, 
-  doc, updateDoc, addDoc, serverTimestamp, limit 
+  doc, updateDoc, addDoc, serverTimestamp 
 } from 'firebase/firestore';
 import { 
-  Search, Send, MoreVertical, Phone, 
-  CheckCheck, User, Image as ImageIcon, ArrowLeft 
+  Search, Send,
+  CheckCheck, Image as ImageIcon, ArrowLeft, Filter, ShoppingCart
 } from 'lucide-react';
 
 export default function AdminChat() {
@@ -17,53 +17,42 @@ export default function AdminChat() {
   const [messages, setMessages] = useState([]);
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef(null);
 
   // 1. FETCH ALL CONVERSATIONS
   useEffect(() => {
-    const q = query(
-      collection(db, "conversations"),
-      orderBy("updatedAt", "desc")
-    );
-
+    const q = query(collection(db, "conversations"), orderBy("updatedAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const convos = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const convos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setConversations(convos);
       setLoading(false);
+
+      // Refresh selectedChat data if it exists in the new list
+      if (selectedChat) {
+        const updated = convos.find(c => c.id === selectedChat.id);
+        if (updated) setSelectedChat(updated);
+      }
     });
-
-    return () => unsubscribe();
-  }, []);
-
-  // 2. FETCH MESSAGES
-  useEffect(() => {
-    if (!selectedChat) return;
-
-    if (selectedChat.unreadAdmin > 0) {
-      updateDoc(doc(db, "conversations", selectedChat.id), {
-        unreadAdmin: 0
-      });
-    }
-
-    const msgRef = collection(db, "conversations", selectedChat.id, "messages");
-    const q = query(msgRef, orderBy("createdAt", "asc"));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setMessages(msgs);
-      setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-    });
-
     return () => unsubscribe();
   }, [selectedChat?.id]);
 
-  // 3. SEND REPLY
+  // 2. FETCH MESSAGES & AUTO-READ
+  useEffect(() => {
+    if (!selectedChat?.id) return;
+
+    if (selectedChat.unreadAdmin > 0) {
+      updateDoc(doc(db, "conversations", selectedChat.id), { unreadAdmin: 0 });
+    }
+
+    const q = query(collection(db, "conversations", selectedChat.id, "messages"), orderBy("createdAt", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    });
+    return () => unsubscribe();
+  }, [selectedChat?.id]);
+
   const handleSendReply = async (e) => {
     e.preventDefault();
     if (!replyText.trim() || !selectedChat) return;
@@ -74,7 +63,7 @@ export default function AdminChat() {
     try {
       await addDoc(collection(db, "conversations", selectedChat.id, "messages"), {
         sender: "admin",
-        text: text,
+        text,
         createdAt: serverTimestamp(),
         seen: false
       });
@@ -84,150 +73,110 @@ export default function AdminChat() {
         unreadUser: (selectedChat.unreadUser || 0) + 1,
         updatedAt: serverTimestamp()
       });
-
     } catch (error) {
-      console.error("Reply Error:", error);
+      console.error("Firebase Error:", error);
     }
   };
 
-  const formatTime = (timestamp) => {
-    if (!timestamp) return "";
-    return timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // SAFE TIME FORMATTER
+  const formatTime = (ts) => {
+    if (!ts || !ts.toDate) return ""; // Handle null or pending timestamps
+    return ts.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const filteredConvos = conversations.filter(c => 
+    c.guestName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    c.productName?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="flex h-[calc(100vh-64px)] md:h-screen text-white overflow-hidden font-sans relative">
+    <div className="flex h-[calc(100vh-64px)] md:h-screen bg-[#050505] text-zinc-300 overflow-hidden font-sans border-t border-white/5">
       
-      {/* ================= LEFT SIDEBAR (Chat List) ================= */}
-      {/* Logic: Mobile pe agar chat selected hai to Sidebar chupao (hidden), otherwise dikhao */}
-      <div className={`
-        flex-col border-r border-white/10  w-full md:w-[350px] lg:w-[400px]
-        ${selectedChat ? 'hidden md:flex' : 'flex'} 
+      {/* SIDEBAR */}
+      <aside className={`
+        flex-col border-r border-white/5 w-full md:w-[350px] lg:w-[400px] bg-[#0A0A0A]
+        ${selectedChat ? 'hidden md:flex' : 'flex'}
       `}>
-        
-        {/* Header */}
-        <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
-          <h1 className="font-bold text-lg tracking-wide">Inbox</h1>
+        <div className="p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-white tracking-tight">Inbox</h1>
+            <button className="p-2 hover:bg-white/5 rounded-full transition-colors text-zinc-500"><Filter size={18}/></button>
+          </div>
+          
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-500 transition-colors" size={16} />
+            <input 
+              type="text" 
+              placeholder="Search chats..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:border-indigo-500/50 outline-none transition-all placeholder:text-zinc-600"
+            />
+          </div>
         </div>
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {loading ? (
-            <div className="p-6 text-center text-gray-500 text-sm">Loading chats...</div>
-          ) : conversations.length === 0 ? (
-            <div className="p-6 text-center text-gray-500 text-sm">No inquiries yet.</div>
-          ) : (
-            conversations.map((chat) => (
-              <div 
-                key={chat.id}
-                onClick={() => setSelectedChat(chat)}
-                className={`p-4 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-colors flex gap-4 ${
-                  selectedChat?.id === chat.id ? "bg-white/10" : ""
-                }`}
-              >
-                <div className="relative">
-                  <img 
-                    src={chat.productImage || "/placeholder.jpg"} 
-                    alt="Product" 
-                    className="w-12 h-12 rounded-full object-cover border border-white/10"
-                  />
-                  {chat.unreadAdmin > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-black">
-                      {chat.unreadAdmin}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="font-bold text-sm truncate text-white">
-                      {chat.guestName || "Guest User"}
-                    </h3>
-                    <span className="text-[10px] text-gray-500">
-                      {formatTime(chat.updatedAt)}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 truncate mb-1">
-                    <span className="text-indigo-400 font-medium">[{chat.productName}]</span> {chat.lastMessage}
-                  </p>
-                </div>
+            <div className="p-10 text-center"><div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div></div>
+          ) : filteredConvos.map((chat) => (
+            <div 
+              key={chat.id}
+              onClick={() => setSelectedChat(chat)}
+              className={`group flex gap-4 p-4 mx-2 rounded-2xl cursor-pointer transition-all mb-1 ${
+                selectedChat?.id === chat.id ? "bg-indigo-600/10 border border-indigo-500/20" : "hover:bg-white/5 border border-transparent"
+              }`}
+            >
+              <div className="relative flex-shrink-0">
+                <img src={chat.productImage || "/placeholder.jpg"} className="w-12 h-12 rounded-xl object-cover ring-2 ring-white/5" alt="Product" />
+                {chat.unreadAdmin > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-[#0A0A0A]">
+                    {chat.unreadAdmin}
+                  </span>
+                )}
               </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* ================= RIGHT MAIN AREA (Chat Window) ================= */}
-      {/* Logic: Mobile pe Chat tabhi dikhegi jab selectedChat ho. Desktop pe hamesha dikhegi (lekin Empty state handle hoga) */}
-      <div className={`
-        flex-1 flex-col bg-[#050505]
-        ${selectedChat ? 'flex fixed inset-0 z-50 md:static' : 'hidden md:flex'}
-      `}>
-        
-        {selectedChat ? (
-          <>
-            {/* Header */}
-            <div className="h-16 border-b border-white/10 flex items-center justify-between px-4 md:px-6 bg-[#0A0A0A] flex-shrink-0">
-              <div className="flex items-center gap-3 md:gap-4">
-                {/* Back Button (Mobile Only) */}
-                <button 
-                  onClick={() => setSelectedChat(null)} 
-                  className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white"
-                >
-                  <ArrowLeft size={20} />
-                </button>
-
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-white/10 overflow-hidden">
-                  <img src={selectedChat.productImage} className="w-full h-full object-cover" />
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-sm font-semibold truncate text-zinc-200">{chat.guestName || "Guest"}</h3>
+                  <span className="text-[10px] text-zinc-600 whitespace-nowrap">{formatTime(chat.updatedAt)}</span>
                 </div>
-                <div>
-                  <h2 className="font-bold text-sm">{selectedChat.guestName}</h2>
-                  <div className="hidden md:flex items-center gap-2 text-xs text-gray-400">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Inquiry for: <span className="text-white max-w-[150px] truncate">{selectedChat.productName}</span>
-                  </div>
-                  {/* Mobile Subtitle */}
-                  <div className="md:hidden text-xs text-gray-400 truncate w-32">
-                    {selectedChat.productName}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 md:gap-4 text-gray-400">
-                <button className="hover:text-white p-2"><Phone size={18} className="md:w-5 md:h-5"/></button>
-                <button className="hover:text-white p-2"><MoreVertical size={18} className="md:w-5 md:h-5"/></button>
+                <p className="text-[11px] text-indigo-400/80 truncate mt-0.5">{chat.productName}</p>
+                <p className="text-xs truncate mt-1 text-zinc-500">{chat.lastMessage}</p>
               </div>
             </div>
+          ))}
+        </div>
+      </aside>
 
-            {/* Messages Feed */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-[#050505]">
-              <div className="flex justify-center">
-                <span className="text-[10px] uppercase tracking-widest text-gray-600 font-bold bg-white/5 px-3 py-1 rounded-full">
-                  {selectedChat.createdAt?.toDate().toDateString()}
-                </span>
+      {/* CHAT WINDOW */}
+      <main className={`flex-1 flex-col relative ${selectedChat ? 'flex fixed inset-0 z-50 md:static' : 'hidden md:flex'}`}>
+        {selectedChat ? (
+          <>
+            <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#050505]/80 backdrop-blur-xl z-10">
+              <div className="flex items-center gap-4">
+                <button onClick={() => setSelectedChat(null)} className="md:hidden p-2 text-zinc-400 hover:text-white"><ArrowLeft size={20} /></button>
+                <img src={selectedChat.productImage} className="w-10 h-10 rounded-lg object-cover" alt="Selected" />
+                <div>
+                  <h2 className="font-bold text-white text-sm leading-none">{selectedChat.guestName}</h2>
+                  <span className="text-[10px] text-zinc-500 mt-1 block">Inquiry: {selectedChat.productName}</span>
+                </div>
               </div>
 
-              {messages.map((msg, index) => {
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#050505]">
+              {messages.map((msg, idx) => {
                 const isAdmin = msg.sender === 'admin';
                 return (
-                  <div key={index} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
-                    {!isAdmin && (
-                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 border border-white/10 flex-shrink-0">
-                        <User size={12} className="md:w-3.5 md:h-3.5 text-gray-400" />
-                      </div>
-                    )}
-
-                    <div className={`max-w-[75%] md:max-w-[70%] space-y-1 ${isAdmin ? 'items-end flex flex-col' : 'items-start flex flex-col'}`}>
-                      <div className={`px-4 py-2 md:px-5 md:py-3 rounded-2xl text-sm leading-relaxed shadow-sm break-words ${
-                        isAdmin 
-                          ? 'bg-indigo-600 text-white rounded-tr-none' 
-                          : 'bg-[#1a1a1a] text-gray-200 border border-white/5 rounded-tl-none'
+                  <div key={msg.id || idx} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`flex flex-col max-w-[80%] md:max-w-[65%] ${isAdmin ? 'items-end' : 'items-start'}`}>
+                      <div className={`px-4 py-2.5 rounded-2xl text-[13px] shadow-sm ${
+                        isAdmin ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-200 rounded-tl-none border border-white/5'
                       }`}>
                         {msg.text}
                       </div>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                      <span className="text-[9px] text-zinc-600 mt-1 flex items-center gap-1 uppercase tracking-tighter">
                         {formatTime(msg.createdAt)}
-                        {isAdmin && <CheckCheck size={12} className="text-indigo-400" />}
+                        {isAdmin && <CheckCheck size={12} className="text-indigo-500" />}
                       </span>
                     </div>
                   </div>
@@ -236,48 +185,37 @@ export default function AdminChat() {
               <div ref={scrollRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="p-3 md:p-4 bg-[#0A0A0A] border-t border-white/10 flex-shrink-0">
-              <form onSubmit={handleSendReply} className="flex items-end gap-2 md:gap-3 max-w-4xl mx-auto">
-                <button type="button" className="p-2 md:p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
-                  <ImageIcon size={20} />
-                </button>
-                
-                <div className="flex-1 bg-white/5 rounded-xl border border-white/10 focus-within:border-indigo-500/50 transition-colors flex items-center">
-                  <input
-                    type="text"
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Type reply..."
-                    className="w-full bg-transparent border-none focus:ring-0 text-sm text-white px-3 py-2 md:px-4 md:py-3 placeholder:text-gray-600"
-                  />
-                </div>
-
+            <footer className="p-4 bg-[#0A0A0A] border-t border-white/5">
+              <form onSubmit={handleSendReply} className="max-w-4xl mx-auto flex items-end gap-2 bg-white/5 p-2 rounded-2xl border border-white/10 focus-within:border-indigo-500/50 transition-all">
+                <button type="button" className="p-2.5 text-zinc-500 hover:text-white"><ImageIcon size={20} /></button>
+                <textarea
+                  rows="1"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Reply here..."
+                  className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2.5 text-white resize-none"
+                  onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendReply(e); } }}
+                />
                 <button 
                   type="submit" 
                   disabled={!replyText.trim()}
-                  className="p-2 md:p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/20"
+                  className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-30 transition-all"
                 >
                   <Send size={20} />
                 </button>
               </form>
-            </div>
+            </footer>
           </>
         ) : (
-          /* ================= EMPTY STATE (Desktop Only) ================= */
-          <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-[#050505] text-gray-500">
-            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
-                <Search size={32} className="text-gray-600" />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Select a Conversation</h2>
-            <p className="text-sm max-w-md text-center">
-              Choose an inquiry from the sidebar to view details.
-            </p>
+          <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-[#050505] p-12 text-center">
+             <div className="w-20 h-20 bg-indigo-600/10 rounded-full flex items-center justify-center mb-6">
+                <ShoppingCart size={32} className="text-indigo-500 opacity-50" />
+             </div>
+             <h2 className="text-xl font-bold text-white mb-2">No Chat Selected</h2>
+             <p className="text-zinc-500 text-sm max-w-xs">Select a customer inquiry to view the conversation and start replying.</p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

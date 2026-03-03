@@ -19,7 +19,6 @@ export default function Navbar() {
   // 2. State for Login Drawer
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  // 3. Token destructure kiya taake check kar sakein user login hai ya nahi
   const { cart, products, currency, token } = useContext(ShopContext);
   
   const pathname = usePathname();
@@ -60,15 +59,13 @@ export default function Navbar() {
   // 4. Handle User Icon Click
   const handleProfileClick = () => {
     if (token) {
-      // Agar token hai, toh Profile page par jao
       router.push("/profile");
     } else {
-      // Agar token nahi hai, toh Login Drawer kholo
       setIsLoginOpen(true);
     }
   };
 
-  if (pathname === "/login" || pathname.includes("/admin")) return null;
+  if (pathname.includes("/admin")) return null;
 
   return (
     <div className="relative mb-24 sm:mb-12">
@@ -231,7 +228,7 @@ export default function Navbar() {
                   )}
                 </div>
 
-                <Link href="/returns" className="text-xl font-black text-[#0145f2]/80 block mt-4 uppercase">STORE RETURNS</Link>
+                <Link href="/shop/collection/returns" className="text-xl font-black text-[#0145f2]/80 block mt-4 uppercase">STORE RETURNS</Link>
               </nav>
             </div>
 

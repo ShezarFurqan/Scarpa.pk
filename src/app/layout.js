@@ -34,7 +34,7 @@ export default function RootLayout({ children }) {
           <LoadingProvider>
             <ShopContextProvider>
               <Navbar />
-              <div className="2xl:px-12 lg:px-10 px-2">
+              <div className="">
                 {children}
               </div>
               <Footer />

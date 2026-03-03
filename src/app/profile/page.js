@@ -21,7 +21,7 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchUserOrders = async () => {
             if (!user && !token) {
-                router.push('/login');
+                router.push('/');
                 return;
             }
 

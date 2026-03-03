@@ -92,8 +92,8 @@ const RelatedProducts = ({ currentProduct, allProducts }) => {
                 title={product.title}
                 price={product.price}
                 fakePrice={product.fakePrice}
+                size={product.sizes[0]}
                 image={product.images?.[0] || product.image}
-                // Blue theme focus colors ko card ke andar pass karne ke liye styling:
                 className="bg-white rounded-[2.5rem] shadow-sm border border-white hover:shadow-[0_30px_60px_-15px_rgba(1,69,242,0.1)] transition-all duration-500"
               />
             </div>

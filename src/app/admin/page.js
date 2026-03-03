@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase'; // Apna path check karein
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase'; 
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useAdminAuth } from './hook/useAdminAuth';
 import { 
   DollarSign, 
@@ -12,7 +12,8 @@ import {
   ArrowUpRight, 
   ArrowDownRight,
   MoreHorizontal,
-  Loader2
+  Loader2,
+  Download
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -21,11 +22,9 @@ export default function DashboardPage() {
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- 1. REAL-TIME ORDERS & STATS CALCULATION ---
   useEffect(() => {
     if (!isAuthorized) return;
 
-    // Query to get latest orders
     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -34,145 +33,152 @@ export default function DashboardPage() {
         ...doc.data()
       }));
 
-      // Calculate Stats Dynamically
       const totalRevenue = ordersData.reduce((acc, curr) => acc + (curr.financials?.total || 0), 0);
       const activeOrders = ordersData.filter(o => o.status === 'Pending' || o.status === 'Processing').length;
       const totalCustomers = new Set(ordersData.map(o => o.customerDetails?.email)).size;
-      const lowStockCount = 0; // Isse aap products collection se fetch kar sakte hain
+      const lowStockCount = 0; // Fetch from products collection ideally
 
       setStats([
         { label: 'Total Revenue', value: `Rs ${totalRevenue.toLocaleString()}`, change: '+12.5%', trend: 'up', icon: DollarSign },
         { label: 'Active Orders', value: activeOrders.toString(), change: 'Live', trend: 'up', icon: ShoppingBag },
         { label: 'Total Customers', value: totalCustomers.toString(), change: '+5%', trend: 'up', icon: Users },
-        { label: 'Low Stock Items', value: 'Check Inv', change: '0', trend: 'down', icon: Package },
+        { label: 'Low Stock Items', value: lowStockCount.toString(), change: '0', trend: 'neutral', icon: Package },
       ]);
 
-      setOrders(ordersData.slice(0, 10)); // Top 10 recent orders
+      setOrders(ordersData.slice(0, 10)); 
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [isAuthorized]);
 
-  // Helper for Status Badge Color
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'completed': case 'delivered': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
-      case 'processing': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'pending': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
-      case 'cancelled': return 'bg-rose-500/10 text-rose-500 border-rose-500/20';
-      default: return 'bg-gray-500/10 text-gray-500 border-white/5';
+      case 'completed': case 'delivered': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'processing': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'pending': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+      case 'cancelled': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+      default: return 'bg-zinc-800 text-zinc-400 border-zinc-700';
     }
   };
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-white animate-spin" />
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-4">
-        <div className="w-12 h-12 border-4 border-white/10 border-t-indigo-500 rounded-full animate-spin" />
-        <p className="text-gray-500 font-mono text-xs tracking-widest animate-pulse">FETCHING_LIVE_DATA...</p>
+      <div className="h-full flex flex-col items-center justify-center space-y-4 min-h-[400px]">
+        <div className="w-10 h-10 border-2 border-zinc-800 border-t-white rounded-full animate-spin" />
+        <p className="text-zinc-500 text-sm animate-pulse">Loading dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 max-w-7xl mx-auto">
       
       {/* PAGE HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-white uppercase italic">Command_Center</h2>
-          <p className="text-gray-500 text-sm mt-1">Real-time store performance analytics.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-white">Dashboard</h2>
+          <p className="text-zinc-400 text-sm mt-1">Overview of your store's performance.</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-white/10">
-            Export CSV
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#0A0A0A] hover:bg-zinc-900 text-zinc-300 text-sm font-medium rounded-lg transition-colors border border-white/10">
+            <Download size={16} />
+            Export
           </button>
         </div>
       </div>
 
-      {/* STATS GRID (Real Data) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* STATS GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className="p-8 rounded-[2rem] bg-[#0A0A0A] border border-white/5 hover:border-indigo-500/20 transition-all group">
-            <div className="flex items-center justify-between mb-6">
-              <span className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                <stat.icon size={22} />
+          <div key={idx} className="p-5 rounded-xl bg-[#0A0A0A] border border-white/5 hover:border-white/10 transition-colors flex flex-col justify-between">
+            <div className="flex items-start justify-between mb-4">
+              <span className="p-2.5 rounded-lg bg-zinc-900 text-zinc-400">
+                <stat.icon size={20} />
               </span>
-              <span className={`text-[10px] font-black flex items-center gap-1 px-2 py-1 rounded-full ${stat.trend === 'up' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                {stat.trend === 'up' ? <ArrowUpRight size={12}/> : <ArrowDownRight size={12}/>}
+              <span className={`text-xs font-medium flex items-center gap-1 px-2 py-0.5 rounded-md
+                ${stat.trend === 'up' ? 'text-emerald-400 bg-emerald-400/10' : 
+                  stat.trend === 'down' ? 'text-rose-400 bg-rose-400/10' : 
+                  'text-zinc-400 bg-zinc-800'}`}>
+                {stat.trend === 'up' && <ArrowUpRight size={14}/>}
+                {stat.trend === 'down' && <ArrowDownRight size={14}/>}
                 {stat.change}
               </span>
             </div>
-            <h3 className="text-3xl font-black text-white tracking-tighter mb-1">{stat.value}</h3>
-            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">{stat.label}</p>
+            <div>
+              <p className="text-sm text-zinc-400 font-medium mb-1">{stat.label}</p>
+              <h3 className="text-2xl font-bold text-white tracking-tight">{stat.value}</h3>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* RECENT ORDERS TABLE (Real Data) */}
-      <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
-        <div className="p-8 border-b border-white/5 flex items-center justify-between">
+      {/* RECENT ORDERS TABLE */}
+      <div className="bg-[#0A0A0A] border border-white/5 rounded-xl overflow-hidden">
+        <div className="p-5 border-b border-white/5 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-white tracking-tight">Recent Transactions</h3>
-            <p className="text-xs text-gray-600">Latest orders from all regions</p>
+            <h3 className="text-base font-semibold text-white">Recent Orders</h3>
+            <p className="text-sm text-zinc-400 mt-0.5">Latest transactions across your store.</p>
           </div>
-          <button className="text-[10px] text-gray-500 hover:text-white transition-colors font-black uppercase tracking-widest border border-white/5 px-4 py-2 rounded-full">
-            View Logistics
+          <button className="text-sm text-zinc-400 hover:text-white transition-colors font-medium">
+            View All
           </button>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-white/[0.01] border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">
-                <th className="px-8 py-5">Order Reference</th>
-                <th className="px-8 py-5">Customer Details</th>
-                <th className="px-8 py-5">Primary Item</th>
-                <th className="px-8 py-5">Net Total</th>
-                <th className="px-8 py-5">Status</th>
-                <th className="px-8 py-5 text-right">Menu</th>
+              <tr className="bg-zinc-900/50 border-b border-white/5 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                <th className="px-5 py-3">Order ID</th>
+                <th className="px-5 py-3">Customer</th>
+                <th className="px-5 py-3">Item</th>
+                <th className="px-5 py-3">Total</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.03] text-sm text-gray-400">
+            <tbody className="divide-y divide-white/5 text-sm text-zinc-300">
               {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-white/[0.02] transition-all group">
-                  <td className="px-8 py-6 font-mono text-[11px] text-indigo-400">
-                    #{order.id.slice(0, 8).toUpperCase()}
+                <tr key={order.id} className="hover:bg-zinc-900/50 transition-colors">
+                  <td className="px-5 py-4 font-mono text-xs text-zinc-500">
+                    #{order.id.slice(0, 8)}
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-5 py-4">
                     <div className="flex flex-col">
-                      <span className="font-bold text-white text-xs">{order.customerDetails?.fullName}</span>
-                      <span className="text-[10px] text-gray-600">{order.customerDetails?.city}</span>
+                      <span className="font-medium text-zinc-200">{order.customerDetails?.fullName || 'Guest User'}</span>
+                      <span className="text-xs text-zinc-500">{order.customerDetails?.email || 'No email provided'}</span>
                     </div>
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 overflow-hidden">
-                        <img src={order.items?.[0]?.image} className="w-full h-full object-cover" alt="" />
+                      <div className="w-8 h-8 rounded bg-zinc-800 border border-white/5 overflow-hidden shrink-0 flex items-center justify-center text-xs text-zinc-500">
+                        {order.items?.[0]?.image ? (
+                          <img src={order.items[0].image} className="w-full h-full object-cover" alt="" />
+                        ) : 'Img'}
                       </div>
-                      <span className="text-[11px] truncate max-w-[120px]">
-                        {order.items?.[0]?.title} {order.items?.length > 1 && `+${order.items.length - 1}`}
+                      <span className="truncate max-w-[150px] text-zinc-300">
+                        {order.items?.[0]?.title || 'Unknown Item'} {order.items?.length > 1 && <span className="text-zinc-500 text-xs ml-1">(+{order.items.length - 1})</span>}
                       </span>
                     </div>
                   </td>
-                  <td className="px-8 py-6 font-mono text-white text-xs">
-                    Rs {order.financials?.total?.toLocaleString()}
+                  <td className="px-5 py-4 font-medium text-zinc-200">
+                    Rs {order.financials?.total?.toLocaleString() || 0}
                   </td>
-                  <td className="px-8 py-6">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(order.status)}`}>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusColor(order.status)}`}>
                       {order.status || 'Pending'}
                     </span>
                   </td>
-                  <td className="px-8 py-6 text-right">
-                    <button className="p-2 hover:bg-indigo-500/20 hover:text-indigo-400 rounded-xl transition-all">
+                  <td className="px-5 py-4 text-right">
+                    <button className="p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-md transition-colors">
                       <MoreHorizontal size={16} />
                     </button>
                   </td>
@@ -181,8 +187,8 @@ export default function DashboardPage() {
             </tbody>
           </table>
           {orders.length === 0 && (
-            <div className="p-20 text-center text-gray-600 font-mono text-xs uppercase tracking-[0.3em]">
-              Zero_Orders_Detected
+            <div className="p-12 text-center text-zinc-500 text-sm">
+              No orders found.
             </div>
           )}
         </div>

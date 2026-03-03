@@ -2,7 +2,7 @@
 import React, { use, useState, useContext, useEffect, useRef } from 'react'
 import {
   Star, Plus, Minus, ShoppingBag, Zap,
-  CheckCircle2, ShieldCheck, Truck, MessageSquare, 
+  CheckCircle2, ShieldCheck, Truck, MessageSquare,
   LogIn, Ruler, Info, ChevronRight, Phone, User, ThumbsUp, HelpCircle
 } from 'lucide-react'
 import Link from 'next/link'
@@ -12,14 +12,16 @@ import {
   collection, addDoc, query, where,
   onSnapshot, serverTimestamp
 } from 'firebase/firestore';
+import LoginDrawer from "../../components/login";
 import RelatedProducts from '@/app/components/RelatedProducts';
 import ProductChat from '@/app/components/ProductChat';
 
 export default function ProductDetailPage({ params }) {
   const resolvedParams = use(params);
   const productId = resolvedParams.slug;
-  const { products, token, addToCart, router, currency } = useContext(ShopContext); 
+  const { cart, products, token, addToCart, router, currency } = useContext(ShopContext);
 
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -115,32 +117,37 @@ export default function ProductDetailPage({ params }) {
           {/* --- LEFT: IMAGE GALLERY (Size Increased by 15%) --- */}
           <div className="lg:col-span-7 flex flex-col items-center lg:sticky lg:top-24">
             <div className="w-full max-w-[95%] lg:max-w-[85%] mx-auto mb-6">
-                <div className="bg-white p-2 md:p-4 rounded-[2.5rem] shadow-sm border border-gray-100 transition-shadow hover:shadow-md">
-                  <div
-                      ref={imgRef}
-                      onMouseMove={handleMove}
-                      onMouseLeave={() => setZoom({ ...zoom, show: false })}
-                      className="relative aspect-[4/5] rounded-[2rem] overflow-hidden cursor-crosshair bg-[#f8f8f8]"
-                  >
-                      <img
-                      src={product.images ? product.images[selectedImage] : '/placeholder.png'}
-                      alt={product.title}
-                      className={`w-full h-full object-contain mix-blend-multiply transition-opacity duration-300 ${zoom.show ? 'opacity-0' : 'opacity-100'}`}
-                      />
-                      {zoom.show && (
-                      <div
-                          className="absolute inset-0 pointer-events-none bg-white"
-                          style={{
-                          backgroundImage: `url(${product.images[selectedImage]})`,
-                          backgroundPosition: `${zoom.x}% ${zoom.y}%`,
-                          backgroundSize: '250%',
-                          backgroundRepeat: 'no-repeat'
-                          }}
-                      />
-                      )}
-                  </div>
+              <div className="bg-white p-2 md:p-4 rounded-[2.5rem] shadow-sm border border-gray-100 transition-shadow hover:shadow-md">
+                <div
+                  ref={imgRef}
+                  onMouseMove={handleMove}
+                  onMouseLeave={() => setZoom({ ...zoom, show: false })}
+                  className="relative aspect-[4/5] rounded-[2rem] overflow-hidden cursor-crosshair bg-[#f8f8f8]"
+                >
+                  <img
+                    src={product.images ? product.images[selectedImage] : '/placeholder.png'}
+                    alt={product.title}
+                    className={`w-full h-full object-contain mix-blend-multiply transition-opacity duration-300 ${zoom.show ? 'opacity-0' : 'opacity-100'}`}
+                  />
+                  {zoom.show && (
+                    <div
+                      className="absolute inset-0 pointer-events-none bg-white"
+                      style={{
+                        backgroundImage: `url(${product.images[selectedImage]})`,
+                        backgroundPosition: `${zoom.x}% ${zoom.y}%`,
+                        backgroundSize: '250%',
+                        backgroundRepeat: 'no-repeat'
+                      }}
+                    />
+                  )}
                 </div>
+              </div>
             </div>
+
+            <LoginDrawer
+              isOpen={isLoginOpen}
+              onClose={() => setIsLoginOpen(false)}
+            />
 
             <div className="flex justify-center gap-3 overflow-x-auto no-scrollbar pb-2 w-full px-2">
               {product.images?.map((img, idx) => (
@@ -161,48 +168,48 @@ export default function ProductDetailPage({ params }) {
           {/* --- RIGHT: PRODUCT INFO --- */}
           <div className="lg:col-span-5 space-y-6 md:space-y-8 pt-2">
             <div className="space-y-3">
-               <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">
-                        {product.category == "none" || ""}
-                    </span>
-                    {product.bestseller && (
-                        <span className="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wider rounded-full border border-amber-100 flex items-center gap-1">
-                            <Zap size={10} fill="currentColor" /> Bestseller
-                        </span>
-                    )}
-               </div>
-              
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">
+                  {product.category == "none" || ""}
+                </span>
+                {product.bestseller && (
+                  <span className="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wider rounded-full border border-amber-100 flex items-center gap-1">
+                    <Zap size={10} fill="currentColor" /> Bestseller
+                  </span>
+                )}
+              </div>
+
               <h1 className="text-3xl md:text-5xl font-[900] tracking-tighter text-gray-900 leading-[0.95] uppercase">
                 {product.title}
               </h1>
 
               <div className="flex items-center gap-4 pt-2">
-                  <span className="text-2xl md:text-3xl font-black text-gray-900">
-                      ${Number(product.price).toLocaleString()}
+                <span className="text-2xl md:text-3xl font-black text-gray-900">
+                  ${Number(product.price).toLocaleString()}
+                </span>
+                {product.fakePrice && (
+                  <span className="text-lg text-gray-300 line-through font-bold">
+                    ${Number(product.fakePrice).toLocaleString()}
                   </span>
-                  {product.fakePrice && (
-                      <span className="text-lg text-gray-300 line-through font-bold">
-                          ${Number(product.fakePrice).toLocaleString()}
-                      </span>
-                  )}
+                )}
               </div>
-              
+
               <div className="flex items-center gap-2">
-                 <StarRating rating={product.rating || 5} size={14} />
-                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                   {reviews.length} Feedbacks
-                 </span>
+                <StarRating rating={product.rating || 5} size={14} />
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  {reviews.length} Feedbacks
+                </span>
               </div>
             </div>
 
             <div className="space-y-4">
-               <div className="flex justify-between items-center">
-                 <span className="text-xs font-black uppercase tracking-widest text-gray-900">Select Size</span>
-                 <button onClick={() => router.push("/sizeguide")} className="text-[10px] font-bold text-gray-400 underline underline-offset-4 hover:text-black">
-                   Size Guide
-                 </button>
-               </div>
-              
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-black uppercase tracking-widest text-gray-900">Select Size</span>
+                <button onClick={() => router.push("/sizeguide")} className="text-[10px] font-bold text-gray-400 underline underline-offset-4 hover:text-black">
+                  Size Guide
+                </button>
+              </div>
+
               <div className="grid grid-cols-4 gap-2 md:gap-3">
                 {product.sizes?.map((size) => (
                   <button
@@ -210,8 +217,8 @@ export default function ProductDetailPage({ params }) {
                     onClick={() => { setSelectedSize(size); setError(""); }}
                     className={`
                       py-3 md:py-4 rounded-xl text-sm font-black transition-all duration-200 border-2
-                      ${selectedSize === size 
-                        ? 'bg-black text-white border-black shadow-lg scale-95' 
+                      ${selectedSize === size
+                        ? 'bg-black text-white border-black shadow-lg scale-95'
                         : 'bg-white text-black border-gray-100 hover:border-black'}
                     `}
                   >
@@ -222,7 +229,7 @@ export default function ProductDetailPage({ params }) {
 
               {error && (
                 <div className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 animate-bounce">
-                   <Info size={12} /> {error}
+                  <Info size={12} /> {error}
                 </div>
               )}
             </div>
@@ -239,16 +246,16 @@ export default function ProductDetailPage({ params }) {
                   </button>
                 </div>
 
-                <button 
-                    onClick={handleAddToCart} 
-                    className="flex-1 bg-black text-white h-14 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-xl shadow-black/10 active:scale-95"
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-black text-white h-14 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-xl shadow-black/10 active:scale-95"
                 >
-                    <ShoppingBag size={18} /> Add To Bag
+                  <ShoppingBag size={18} /> Add To Bag
                 </button>
               </div>
 
               {/* ASK ANYTHING OPTION */}
-              <button 
+              <button
                 onClick={() => setOpen(true)}
                 className="w-full py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-black transition-colors group"
               >
@@ -258,26 +265,26 @@ export default function ProductDetailPage({ params }) {
             </div>
 
             <div className="grid grid-cols-3 gap-2 py-6 border-t border-gray-100">
-               {[ {i: Truck, t: "Fast Ship"}, {i: ShieldCheck, t: "Secure"}, {i: CheckCircle2, t: "Original"} ].map((item, idx)=>(
-                  <div key={idx} className="flex flex-col items-center gap-1">
-                    <item.i size={18} className="text-gray-900" />
-                    <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400">{item.t}</span>
-                  </div>
-               ))}
+              {[{ i: Truck, t: "Fast Ship" }, { i: ShieldCheck, t: "Secure" }, { i: CheckCircle2, t: "Original" }].map((item, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-1">
+                  <item.i size={18} className="text-gray-900" />
+                  <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400">{item.t}</span>
+                </div>
+              ))}
             </div>
 
             <div className="space-y-3">
-               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 border-b border-black pb-1 inline-block">Description</h3>
-               <p className="text-sm text-gray-500 leading-relaxed font-medium">
-                 {product.description}
-               </p>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 border-b border-black pb-1 inline-block">Description</h3>
+              <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                {product.description}
+              </p>
             </div>
           </div>
         </div>
 
         {/* RELATED PRODUCTS */}
         <div className="mt-20 md:mt-32">
-             <RelatedProducts currentProduct={product} allProducts={products} />
+          <RelatedProducts currentProduct={product} allProducts={products} />
         </div>
 
         {/* --- REVIEWS SECTION --- */}
@@ -286,7 +293,7 @@ export default function ProductDetailPage({ params }) {
             <div className="lg:col-span-7 space-y-8">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
                 <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-gray-900 italic">
-                    Feedback
+                  Feedback
                 </h2>
                 <span className="text-xs font-black text-gray-300 uppercase tracking-widest">{reviews.length} Verified Reviews</span>
               </div>
@@ -312,61 +319,67 @@ export default function ProductDetailPage({ params }) {
                   </div>
                 )) : (
                   <div className="bg-gray-50 p-12 rounded-[2rem] text-center border-2 border-dashed border-gray-200">
-                      <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No feedback yet</p>
+                    <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No feedback yet</p>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="lg:col-span-5">
-                <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-black/5 border border-gray-50 sticky top-24">
+              <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-black/5 border border-gray-50 sticky top-24">
                 {token ? (
-                    <div className="space-y-6">
-                        <div className="mb-4">
-                            <h3 className="text-xl font-black uppercase tracking-tight text-gray-900 leading-none">Drop a Review</h3>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2">Verified Purchase Only</p>
-                        </div>
-                        
-                        <form onSubmit={handleAddReview} className="space-y-5">
-                            <div className="flex justify-center bg-gray-50 py-6 rounded-2xl border border-gray-100">
-                                 <StarRating rating={newReview.rating} size={28} interactive={true} />
-                            </div>
-                            
-                            <input
-                              type="text"
-                              placeholder="YOUR NAME"
-                              value={newReview.name}
-                              onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
-                              className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                            />
-
-                            <textarea
-                              placeholder="WHAT DID YOU THINK?"
-                              rows={4}
-                              value={newReview.comment}
-                              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                              className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none"
-                            />
-
-                            <button type="submit" className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:scale-[1.02] transition-all active:scale-95 shadow-lg shadow-black/10">
-                                Submit Feedback
-                            </button>
-                        </form>
+                  <div className="space-y-6">
+                    <div className="mb-4">
+                      <h3 className="text-xl font-black uppercase tracking-tight text-gray-900 leading-none">Drop a Review</h3>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2">Verified Purchase Only</p>
                     </div>
+
+                    <form onSubmit={handleAddReview} className="space-y-5">
+                      <div className="flex justify-center bg-gray-50 py-6 rounded-2xl border border-gray-100">
+                        <StarRating rating={newReview.rating} size={28} interactive={true} />
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="YOUR NAME"
+                        value={newReview.name}
+                        onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+                        className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                      />
+
+                      <textarea
+                        placeholder="WHAT DID YOU THINK?"
+                        rows={4}
+                        value={newReview.comment}
+                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                        className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none"
+                      />
+
+                      <button type="submit" className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:scale-[1.02] transition-all active:scale-95 shadow-lg shadow-black/10">
+                        Submit Feedback
+                      </button>
+                    </form>
+                  </div>
                 ) : (
-                    <div className="text-center py-6 space-y-6">
-                        <h3 className="text-xl font-black uppercase tracking-tighter text-gray-900">Login to Review</h3>
-                        <Link href="/login" className="inline-flex items-center justify-center bg-black text-white py-4 px-8 rounded-full font-black uppercase tracking-widest text-[10px] hover:shadow-xl transition-all">
-                            Login <ChevronRight size={14} className="ml-2" />
-                        </Link>
-                    </div>
+                  <div className="text-center py-6 space-y-6">
+                    <h3 className="text-xl font-black uppercase tracking-tighter text-gray-900">Login to Review</h3>
+                    <button onClick={() => {
+                      if (token) {
+                        router.push("/profile");
+                      } else {
+                        setIsLoginOpen(true);
+                      }
+                    }} className="inline-flex items-center justify-center bg-black text-white py-4 px-8 rounded-full font-black uppercase tracking-widest text-[10px] hover:shadow-xl transition-all">
+                      Login <ChevronRight size={14} className="ml-2" />
+                    </button>
+                  </div>
                 )}
-                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <ProductChat product={product} open={open} setOpen={setOpen} />
     </div>
   )

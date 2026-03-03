@@ -9,6 +9,7 @@ import { useLoading } from '../Context/LoginContext';
 const Hero = () => {
   const [content, setContent] = useState(null);
   const { setLoading } = useLoading();
+  
 
   const fetchHeroContent = async () => {
     setLoading(true);

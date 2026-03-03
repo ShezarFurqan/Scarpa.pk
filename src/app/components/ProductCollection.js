@@ -111,10 +111,10 @@ const ProductsCollection = ({ collectionName }) => {
         {/* Action Button - Refined for Light Theme */}
         <div className="mt-24 flex justify-center">
           <button 
-            onClick={() => router.push("/collection/allproducts")}
+            onClick={() => router.push(`/shop/collection/${collectionName}`)}
             className="group relative flex items-center gap-6 px-12 py-5 bg-white border border-[#0145f2]/10 rounded-2xl text-[#0145f2] text-sm font-black uppercase tracking-widest hover:bg-[#0145f2] hover:text-white transition-all duration-500 shadow-xl shadow-blue-900/5 overflow-hidden"
           >
-            <span className="relative z-10">Explore Full Catalog</span>
+            <span className="relative z-10">Explore Full Collection</span>
             <ArrowRight className="w-5 h-5 relative z-10 transition-transform group-hover:translate-x-2" />
             
             {/* Hover Background Animation */}

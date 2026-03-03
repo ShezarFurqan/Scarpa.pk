@@ -9,22 +9,17 @@ import {
 import { 
   Plus, Trash2, Edit3, Save, Search, CheckCircle2, 
   Tag, DollarSign, Layers, Image as ImageIcon, Video, 
-  Type, Link as LinkIcon, UploadCloud, RefreshCw, Eye
+  Type, Link as LinkIcon, UploadCloud, RefreshCw, Eye, 
+  X, ExternalLink
 } from 'lucide-react';
 
-// --- CLOUDINARY CONFIG ---
 const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 
-/**
- * HELPER: Upload to Cloudinary
- * Handles both images and videos
- */
 const uploadToCloudinary = async (file, type) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
   const resourceType = type === 'video' ? 'video' : 'image';
   
   try {
@@ -35,499 +30,272 @@ const uploadToCloudinary = async (file, type) => {
     const data = await res.json();
     return data.secure_url;
   } catch (error) {
-    console.error("Cloudinary Upload Error:", error);
+    console.error("Upload Error:", error);
     return null;
   }
 };
 
 export default function CollectionsManager() {
-  // Existing States
   const [collections, setCollections] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(''); 
   const [isEditing, setIsEditing] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    selectedProducts: []
-  });
-
-  // --- NEW CMS STATES ---
-  const [heroData, setHeroData] = useState({
-    badge: '',
-    titleLine1: '',
-    titleLine2: '',
-    description: '',
-    btnPrimary: '',
-    btnSecondary: '',
-    image: ''
-  });
-  const [storyData, setStoryData] = useState({
-    sectionTitle: '',
-    sectionDescription: '',
-    videoTitle: '',
-    video: '',
-    collectionLink: ''
-  });
+  const [formData, setFormData] = useState({ title: '', description: '', selectedProducts: [] });
+  const [heroData, setHeroData] = useState({ badge: '', titleLine1: '', titleLine2: '', description: '', btnPrimary: '', btnSecondary: '', image: '' });
+  const [storyData, setStoryData] = useState({ sectionTitle: '', sectionDescription: '', videoTitle: '', video: '', collectionLink: '' });
   const [uploading, setUploading] = useState({ hero: false, story: false });
 
   useEffect(() => {
-    // Existing Collection Snapshot
     const unsubCol = onSnapshot(collection(db, 'Productcollections'), (snap) => {
-      setCollections(snap.docs.map(d => ({ 
-        id: d.id, 
-        ...d.data(),
-        selectedProducts: d.data().selectedProducts || [] 
-      })));
+      setCollections(snap.docs.map(d => ({ id: d.id, ...d.data(), selectedProducts: d.data().selectedProducts || [] })));
       setLoading(false);
     });
 
-    // Fetch Products
     const fetchProds = async () => {
-      const pSnap = await getDocs(collection(collection(db, 'products')));
+      const pSnap = await getDocs(collection(db, 'products'));
       setAllProducts(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     };
     
-    // Fetch Singleton CMS Docs
     const fetchCMSData = async () => {
-      const heroRef = doc(db, 'heroSection', 'singleton');
-      const storyRef = doc(db, 'storySection', 'singleton');
-      
-      const heroSnap = await getDoc(heroRef);
-      const storySnap = await getDoc(storyRef);
-
+      const heroSnap = await getDoc(doc(db, 'heroSection', 'singleton'));
+      const storySnap = await getDoc(doc(db, 'storySection', 'singleton'));
       if (heroSnap.exists()) setHeroData(heroSnap.data());
       if (storySnap.exists()) setStoryData(storySnap.data());
     };
 
     fetchProds();
     fetchCMSData();
-
     return () => unsubCol();
   }, []);
 
-  // --- EXISTING LOGIC ---
-  const filteredProducts = allProducts.filter(p => 
-    p.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const handleSelectProduct = (product) => {
     const exists = formData.selectedProducts.find(p => p.id === product.id);
-    if (exists) {
-      setFormData({ ...formData, selectedProducts: formData.selectedProducts.filter(p => p.id !== product.id) });
-    } else {
-      setFormData({ ...formData, selectedProducts: [...formData.selectedProducts, product] });
-    }
+    setFormData({
+      ...formData,
+      selectedProducts: exists 
+        ? formData.selectedProducts.filter(p => p.id !== product.id)
+        : [...formData.selectedProducts, product]
+    });
   };
 
   const saveCollection = async () => {
-    if (!formData.title) return alert("Please add a title");
-    if (isEditing) {
-      await updateDoc(doc(db, 'Productcollections', isEditing), formData);
-      setIsEditing(null);
-    } else {
-      await addDoc(collection(db, 'Productcollections'), { ...formData, createdAt: new Date() });
-    }
-    setFormData({ title: '', description: '', selectedProducts: [] });
-  };
-
-  const deleteCollection = async (id) => {
-    if(confirm("Delete this collection?")) await deleteDoc(doc(db, 'Productcollections', id));
-  };
-
-  // --- NEW CMS LOGIC ---
-
-  const handleHeroSave = async () => {
-    setUploading({ ...uploading, hero: true });
+    if (!formData.title) return alert("Title is required");
     try {
-      await setDoc(doc(db, 'heroSection', 'singleton'), {
-        ...heroData,
-        updatedAt: new Date()
-      });
-      alert("Hero Section Updated!");
+      if (isEditing) {
+        await updateDoc(doc(db, 'Productcollections', isEditing), formData);
+        setIsEditing(null);
+      } else {
+        await addDoc(collection(db, 'Productcollections'), { ...formData, createdAt: new Date() });
+      }
+      setFormData({ title: '', description: '', selectedProducts: [] });
     } catch (e) { console.error(e); }
-    setUploading({ ...uploading, hero: false });
   };
 
-  const handleStorySave = async () => {
-    setUploading({ ...uploading, story: true });
+  const handleCMSUpdate = async (type) => {
+    const target = type === 'hero' ? 'heroSection' : 'storySection';
+    const data = type === 'hero' ? heroData : storyData;
+    setUploading(prev => ({ ...prev, [type]: true }));
     try {
-      await setDoc(doc(db, 'storySection', 'singleton'), {
-        ...storyData,
-        updatedAt: new Date()
-      });
-      alert("Story Section Updated!");
+      await setDoc(doc(db, target, 'singleton'), { ...data, updatedAt: new Date() });
+      alert(`${type.toUpperCase()} Section Updated!`);
     } catch (e) { console.error(e); }
-    setUploading({ ...uploading, story: false });
+    setUploading(prev => ({ ...prev, [type]: false }));
   };
 
   const handleFileUpload = async (e, type, target) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (target === 'hero') setUploading({ ...uploading, hero: true });
-    else setUploading({ ...uploading, story: true });
-
+    setUploading(prev => ({ ...prev, [target]: true }));
     const url = await uploadToCloudinary(file, type);
-    
-    if (target === 'hero') {
-      setHeroData({ ...heroData, image: url });
-      setUploading({ ...uploading, hero: false });
-    } else {
-      setStoryData({ ...storyData, video: url });
-      setUploading({ ...uploading, story: false });
-    }
+    if (target === 'hero') setHeroData(prev => ({ ...prev, image: url }));
+    else setStoryData(prev => ({ ...prev, video: url }));
+    setUploading(prev => ({ ...prev, [target]: false }));
   };
 
   return (
-    <div className="bg-[#050505] min-h-screen text-gray-300 p-8 space-y-12">
+    <div className="max-w-7xl mx-auto p-6 space-y-10 animate-in fade-in duration-500">
       
-      {/* 1. EXISTING COLLECTIONS MANAGER */}
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="w-full lg:w-2/5 space-y-6">
-          <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-[2.5rem] sticky top-8 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-black text-white flex items-center gap-2 italic uppercase">
-                {isEditing ? <Edit3 className="text-indigo-500" size={20}/> : <Plus className="text-indigo-500" size={20}/>} 
-                {isEditing ? 'Update_Collection' : 'New_Collection'}
-              </h2>
-              {isEditing && (
-                <button onClick={() => {
-                  setIsEditing(null);
-                  setFormData({ title: '', description: '', selectedProducts: [] });
-                }} className="text-[10px] bg-white/5 px-3 py-1 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all">CANCEL</button>
-              )}
-            </div>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-gray-600 ml-2 tracking-widest">Collection Info</label>
-                <input 
-                  className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none transition-all text-white"
-                  placeholder="Collection Title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                />
-                <textarea 
-                  className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none h-20 resize-none text-white"
-                  placeholder="Description..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                />
-              </div>
-              <div className="pt-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black uppercase text-gray-600 ml-2 tracking-widest">Select Products ({formData.selectedProducts.length})</label>
-                  <div className="relative w-1/2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" size={12} />
-                    <input 
-                      type="text"
-                      placeholder="Search..."
-                      className="w-full bg-white/5 border border-white/5 rounded-full py-1.5 pl-8 pr-4 text-[10px] focus:border-indigo-500 outline-none"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto p-3 bg-black rounded-[2rem] border border-white/5 custom-scrollbar">
-                  {filteredProducts.map(product => {
-                    const isSelected = formData.selectedProducts.some(p => p.id === product.id);
-                    return (
-                      <div 
-                        key={product.id}
-                        onClick={() => handleSelectProduct(product)}
-                        className={`flex items-center gap-3 p-2 rounded-2xl border transition-all cursor-pointer group ${isSelected ? 'border-indigo-500/50 bg-indigo-500/5' : 'border-white/5 hover:border-white/20'}`}
-                      >
-                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 relative border border-white/5">
-                          <img src={product.images?.[0] || product.image} className="w-full h-full object-cover" />
-                          {isSelected && <div className="absolute inset-0 bg-indigo-500/40 flex items-center justify-center"><CheckCircle2 size={16} className="text-white"/></div>}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold text-white truncate uppercase tracking-tight">{product.title}</p>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="text-[9px] text-gray-500 flex items-center gap-0.5"><DollarSign size={8}/> {product.price}</span>
-                            <span className="text-[9px] text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 font-bold uppercase tracking-tighter"><Tag size={8}/> {product.category}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              <button 
-                onClick={saveCollection}
-                className="w-full bg-white text-black font-black py-5 rounded-[1.5rem] text-[10px] uppercase tracking-[0.2em] hover:bg-indigo-500 hover:text-white transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
-              >
-                <Save size={14} className="inline mr-2" /> Push To Database
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 space-y-6">
-           <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
-              <h3 className="text-xs font-black uppercase tracking-[0.4em] text-gray-600 flex items-center gap-2"><Layers size={14}/> Active_Collections [{collections.length}]</h3>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto max-h-[85vh] pr-4 custom-scrollbar">
-              {collections.map(col => (
-                <div key={col.id} className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-7 group hover:border-indigo-500/30 transition-all relative overflow-hidden">
-                  <div className="flex justify-between items-start mb-5 relative z-10">
-                    <div>
-                      <h4 className="text-lg font-black text-white tracking-tighter uppercase">{col.title}</h4>
-                      <p className="text-[11px] text-gray-600 mt-1 line-clamp-1 italic">{col.description}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => { setIsEditing(col.id); setFormData(col); }} className="p-2.5 bg-white/5 rounded-xl hover:bg-indigo-500 hover:text-white transition-all"><Edit3 size={14}/></button>
-                      <button onClick={() => deleteCollection(col.id)} className="p-2.5 bg-white/5 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={14}/></button>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 py-5 border-y border-white/[0.03] my-4 relative z-10">
-                     <div className="flex -space-x-3 overflow-hidden">
-                        {(col.selectedProducts || []).slice(0, 5).map((p, i) => (
-                          <div key={i} className="h-9 w-9 rounded-xl ring-4 ring-[#0A0A0A] overflow-hidden border border-white/10">
-                            <img className="w-full h-full object-cover" src={p.images?.[0] || p.image} alt="" />
-                          </div>
-                        ))}
-                     </div>
-                     <div className="flex flex-col">
-                       <span className="text-[10px] font-black text-white uppercase tracking-widest">{col.selectedProducts?.length || 0} Assets</span>
-                     </div>
-                  </div>
-                </div>
-              ))}
-           </div>
+      {/* HEADER */}
+      <div className="flex justify-between items-end border-b border-white/5 pb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Store Customization</h1>
+          <p className="text-zinc-500 text-sm mt-1">Manage collections, visuals, and brand storytelling.</p>
         </div>
       </div>
 
-      <hr className="border-white/5" />
+      {/* 1. COLLECTIONS MANAGER */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Editor Side */}
+        <div className="lg:col-span-5 bg-[#0A0A0A] border border-white/5 rounded-2xl p-6 h-fit sticky top-24">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              {isEditing ? <Edit3 size={18} className="text-indigo-400"/> : <Plus size={18} className="text-indigo-400"/>}
+              {isEditing ? 'Edit Collection' : 'Create Collection'}
+            </h2>
+            {isEditing && (
+              <button onClick={() => { setIsEditing(null); setFormData({title:'', description:'', selectedProducts:[]})}} 
+                className="text-xs text-zinc-500 hover:text-white transition-colors">Cancel</button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Title</label>
+              <input className="w-full bg-zinc-900/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-indigo-500 outline-none transition-all"
+                placeholder="e.g. Winter Essentials" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Description</label>
+              <textarea className="w-full bg-zinc-900/50 border border-white/10 rounded-xl px-4 py-3 text-sm h-24 focus:border-indigo-500 outline-none resize-none"
+                placeholder="Tell the story of this collection..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+            </div>
+
+            <div className="pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Products ({formData.selectedProducts.length})</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={14} />
+                  <input className="bg-zinc-900 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-xs focus:border-indigo-500 outline-none w-40"
+                    placeholder="Search..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-2 bg-black/40 rounded-xl border border-white/5 scrollbar-hide">
+                {allProducts.filter(p => p.title?.toLowerCase().includes(searchTerm.toLowerCase())).map(product => {
+                  const isSelected = formData.selectedProducts.some(p => p.id === product.id);
+                  return (
+                    <div key={product.id} onClick={() => handleSelectProduct(product)}
+                      className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 hover:bg-white/5'}`}>
+                      <img src={product.images?.[0] || product.image} className="w-10 h-10 rounded object-cover" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-zinc-200 truncate">{product.title}</p>
+                        <p className="text-[10px] text-zinc-500">Rs {product.price}</p>
+                      </div>
+                      {isSelected && <CheckCircle2 size={16} className="text-indigo-400" />}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button onClick={saveCollection} className="w-full bg-white hover:bg-zinc-200 text-black font-bold py-3.5 rounded-xl text-xs uppercase tracking-widest transition-all mt-4 flex items-center justify-center gap-2">
+              <Save size={16}/> {isEditing ? 'Update Collection' : 'Publish Collection'}
+            </button>
+          </div>
+        </div>
+
+        {/* List Side */}
+        <div className="lg:col-span-7 space-y-4">
+          <div className="flex items-center gap-2 text-zinc-500 mb-2">
+            <Layers size={16}/>
+            <span className="text-xs font-medium uppercase tracking-widest">Active Collections ({collections.length})</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {collections.map(col => (
+              <div key={col.id} className="bg-zinc-900/30 border border-white/5 rounded-2xl p-5 group hover:border-white/20 transition-all">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="max-w-[70%]">
+                    <h3 className="text-sm font-bold text-white truncate">{col.title}</h3>
+                    <p className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5 italic">{col.description}</p>
+                  </div>
+                  <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setIsEditing(col.id); setFormData(col); }} className="p-2 hover:bg-white/10 rounded-lg text-zinc-400"><Edit3 size={14}/></button>
+                    <button onClick={async () => { if(confirm("Delete?")) await deleteDoc(doc(db, 'Productcollections', col.id)); }} className="p-2 hover:bg-rose-500/20 rounded-lg text-rose-400"><Trash2 size={14}/></button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
+                  <div className="flex -space-x-2">
+                    {col.selectedProducts.slice(0, 4).map((p, i) => (
+                      <div key={i} className="h-7 w-7 rounded-full border border-zinc-900 bg-zinc-800 overflow-hidden ring-2 ring-zinc-950">
+                        <img className="w-full h-full object-cover" src={p.images?.[0] || p.image} alt="" />
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-md uppercase">{col.selectedProducts.length} Items</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* 2. HERO SECTION CMS */}
-      <div className="bg-[#0A0A0A] border border-white/5 rounded-[3rem] p-10 shadow-3xl">
-        <div className="flex justify-between items-center mb-10">
+      <section className="bg-[#0A0A0A] border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-6 border-b border-white/5 flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Hero_Section_CMS</h2>
-            <p className="text-[10px] text-gray-500 uppercase tracking-[0.3em] mt-1">Single source of truth for the landing hero</p>
+            <h2 className="text-lg font-bold text-white tracking-tight">Hero Section Configuration</h2>
+            <p className="text-xs text-zinc-500">Update your landing page's main visual impact.</p>
           </div>
-          <button 
-            disabled={uploading.hero}
-            onClick={handleHeroSave}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50"
-          >
-            {uploading.hero ? <RefreshCw className="animate-spin" size={14}/> : <Save size={14}/>}
-            Save Hero Changes
+          <button onClick={() => handleCMSUpdate('hero')} disabled={uploading.hero} 
+            className="bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-white disabled:opacity-50 transition-all flex items-center gap-2">
+            {uploading.hero ? <RefreshCw className="animate-spin" size={14}/> : <Save size={14}/>} Update Landing
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Form Fields */}
-          <div className="space-y-6">
+        <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-indigo-400 ml-2 tracking-widest flex items-center gap-1"><Tag size={10}/> Badge</label>
-                <input 
-                  className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none text-white"
-                  value={heroData.badge}
-                  onChange={(e) => setHeroData({...heroData, badge: e.target.value})}
-                  placeholder="New Season 2024"
-                />
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Floating Badge</label>
+                <input className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-indigo-500 outline-none" 
+                  value={heroData.badge} onChange={e => setHeroData({...heroData, badge: e.target.value})} placeholder="e.g. SUMMER 2024" />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-indigo-400 ml-2 tracking-widest flex items-center gap-1"><ImageIcon size={10}/> Hero Asset</label>
-                <div className="relative group">
-                  <input 
-                    type="file" 
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={(e) => handleFileUpload(e, 'image', 'hero')}
-                  />
-                  <div className="bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm text-gray-500 flex items-center justify-between group-hover:border-indigo-500 transition-all">
-                    <span>{uploading.hero ? "Uploading..." : "Click to Upload"}</span>
-                    <UploadCloud size={16}/>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Hero Asset</label>
+                <div className="relative group bg-zinc-900 border border-dashed border-white/10 hover:border-indigo-500 rounded-xl px-4 py-3 transition-all cursor-pointer">
+                  <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileUpload(e, 'image', 'hero')} />
+                  <div className="flex items-center justify-between text-xs text-zinc-500">
+                    <span>{uploading.hero ? "Uploading..." : "Click to Swap"}</span>
+                    <UploadCloud size={16} />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-indigo-400 ml-2 tracking-widest flex items-center gap-1"><Type size={10}/> Title Line 1</label>
-                <input 
-                  className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none text-white"
-                  value={heroData.titleLine1}
-                  onChange={(e) => setHeroData({...heroData, titleLine1: e.target.value})}
-                />
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <input className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500" 
+                  placeholder="Main Title Line" value={heroData.titleLine1} onChange={e => setHeroData({...heroData, titleLine1: e.target.value})} />
+                <input className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 text-indigo-400 italic" 
+                  placeholder="Secondary Italic" value={heroData.titleLine2} onChange={e => setHeroData({...heroData, titleLine2: e.target.value})} />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-indigo-400 ml-2 tracking-widest flex items-center gap-1"><Type size={10}/> Title Line 2</label>
-                <input 
-                  className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none text-white"
-                  value={heroData.titleLine2}
-                  onChange={(e) => setHeroData({...heroData, titleLine2: e.target.value})}
-                />
+              <textarea className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm h-24 outline-none focus:border-indigo-500 resize-none" 
+                placeholder="Description text..." value={heroData.description} onChange={e => setHeroData({...heroData, description: e.target.value})} />
+              <div className="grid grid-cols-2 gap-4">
+                <input className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-zinc-300" placeholder="Primary Button Label"
+                  value={heroData.btnPrimary} onChange={e => setHeroData({...heroData, btnPrimary: e.target.value})} />
+                <input className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-zinc-300" placeholder="Secondary Button Label"
+                  value={heroData.btnSecondary} onChange={e => setHeroData({...heroData, btnSecondary: e.target.value})} />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-indigo-400 ml-2 tracking-widest flex items-center gap-1"><Type size={10}/> Description</label>
-              <textarea 
-                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none h-24 resize-none text-white"
-                value={heroData.description}
-                onChange={(e) => setHeroData({...heroData, description: e.target.value})}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <input 
-                className="bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm text-white"
-                placeholder="Primary Button Label"
-                value={heroData.btnPrimary}
-                onChange={(e) => setHeroData({...heroData, btnPrimary: e.target.value})}
-              />
-              <input 
-                className="bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm text-white"
-                placeholder="Secondary Button Label"
-                value={heroData.btnSecondary}
-                onChange={(e) => setHeroData({...heroData, btnSecondary: e.target.value})}
-              />
             </div>
           </div>
 
-          {/* Preview Area */}
-          <div className="bg-black rounded-[2.5rem] border border-white/5 p-8 relative overflow-hidden flex flex-col items-center justify-center text-center">
-            <div className="absolute top-4 left-4 flex items-center gap-2 text-[10px] font-black text-gray-700 uppercase tracking-widest">
-              <Eye size={12}/> Live_Preview
+          {/* Preview Mockup */}
+          <div className="bg-zinc-950 rounded-2xl border border-white/10 p-4 flex flex-col items-center justify-center relative overflow-hidden group min-h-[350px]">
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+              <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Live Mockup</span>
             </div>
-            {heroData.image && <img src={heroData.image} className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm" alt="" />}
+            {heroData.image && <img src={heroData.image} className="absolute inset-0 w-full h-full object-cover opacity-20 blur-md scale-110" alt="" />}
             
-            <div className="relative z-10 max-w-sm space-y-4">
-              <span className="text-[10px] font-black bg-white text-black px-3 py-1 rounded-full uppercase tracking-widest">{heroData.badge || 'Badge'}</span>
-              <h1 className="text-4xl font-black text-white uppercase leading-none">
-                {heroData.titleLine1 || 'Headline'} <br/>
-                <span className="text-indigo-500 italic">{heroData.titleLine2 || 'Subheader'}</span>
+            <div className="relative z-10 text-center space-y-4 max-w-sm">
+              <span className="text-[9px] font-bold bg-white text-black px-2.5 py-1 rounded-full uppercase tracking-[0.2em]">{heroData.badge || 'BADGE'}</span>
+              <h1 className="text-3xl font-extrabold text-white uppercase leading-none tracking-tighter">
+                {heroData.titleLine1 || 'Your Brand'} <br/>
+                <span className="text-indigo-500 italic lowercase">{heroData.titleLine2 || 'Style'}</span>
               </h1>
-              <p className="text-xs text-gray-400 leading-relaxed">{heroData.description || 'Description goes here...'}</p>
-              <div className="flex gap-4 justify-center pt-4">
-                <div className="px-6 py-2 bg-indigo-500 text-white rounded-full text-[9px] font-black uppercase">{heroData.btnPrimary || 'Action'}</div>
-                <div className="px-6 py-2 border border-white/20 text-white rounded-full text-[9px] font-black uppercase">{heroData.btnSecondary || 'Action'}</div>
+              <p className="text-[11px] text-zinc-400 line-clamp-2">{heroData.description || 'Describe your aesthetic...'}</p>
+              <div className="flex gap-3 justify-center pt-2">
+                <div className="px-5 py-2 bg-indigo-600 rounded-full text-[9px] font-bold uppercase text-white shadow-lg shadow-indigo-600/20">{heroData.btnPrimary || 'Shop'}</div>
+                <div className="px-5 py-2 border border-white/20 rounded-full text-[9px] font-bold uppercase text-white hover:bg-white hover:text-black transition-all">Details</div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 3. STORY / VIDEO CMS */}
-      <div className="bg-[#0A0A0A] border border-white/5 rounded-[3rem] p-10 shadow-3xl">
-        <div className="flex justify-between items-center mb-10">
-          <div>
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Story_Section_CMS</h2>
-            <p className="text-[10px] text-gray-500 uppercase tracking-[0.3em] mt-1">Configure the cinematic video spotlight</p>
-          </div>
-          <button 
-            disabled={uploading.story}
-            onClick={handleStorySave}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50"
-          >
-            {uploading.story ? <RefreshCw className="animate-spin" size={14}/> : <Save size={14}/>}
-            Save Story Changes
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Form */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-emerald-400 ml-2 tracking-widest flex items-center gap-1"><Type size={10}/> Section Title</label>
-              <input 
-                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-emerald-500 outline-none text-white"
-                value={storyData.sectionTitle}
-                onChange={(e) => setStoryData({...storyData, sectionTitle: e.target.value})}
-                placeholder="The Brand Story"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-emerald-400 ml-2 tracking-widest flex items-center gap-1"><Type size={10}/> Section Description</label>
-              <textarea 
-                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-emerald-500 outline-none h-20 resize-none text-white"
-                value={storyData.sectionDescription}
-                onChange={(e) => setStoryData({...storyData, sectionDescription: e.target.value})}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-emerald-400 ml-2 tracking-widest flex items-center gap-1"><Type size={10}/> Video Overlay Title</label>
-                <input 
-                  className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-emerald-500 outline-none text-white"
-                  value={storyData.videoTitle}
-                  onChange={(e) => setStoryData({...storyData, videoTitle: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-emerald-400 ml-2 tracking-widest flex items-center gap-1"><Video size={10}/> Cinematic Video</label>
-                <div className="relative group">
-                  <input 
-                    type="file" 
-                    accept="video/*"
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={(e) => handleFileUpload(e, 'video', 'story')}
-                  />
-                  <div className="bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm text-gray-500 flex items-center justify-between group-hover:border-emerald-500 transition-all">
-                    <span>{uploading.story ? "Processing..." : "Upload .mp4"}</span>
-                    <UploadCloud size={16}/>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-emerald-400 ml-2 tracking-widest flex items-center gap-1"><LinkIcon size={10}/> Collection Route</label>
-              <input 
-                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-emerald-500 outline-none text-white"
-                value={storyData.collectionLink}
-                onChange={(e) => setStoryData({...storyData, collectionLink: e.target.value})}
-                placeholder="/collections/winter-24"
-              />
-            </div>
-          </div>
-
-          {/* Video Preview Area */}
-          <div className="bg-black rounded-[2.5rem] border border-white/5 p-4 flex flex-col">
-            <div className="flex items-center gap-2 text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] mb-4 ml-4 mt-2">
-              <Eye size={12}/> Video_Broadcast_Preview
-            </div>
-            
-            <div className="relative flex-1 rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 aspect-video lg:aspect-auto">
-              {storyData.video ? (
-                <video 
-                  src={storyData.video} 
-                  controls 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-gray-700">
-                  <Video size={48} className="mb-2 opacity-20"/>
-                  <span className="text-[10px] font-black uppercase tracking-widest">No Media Asset</span>
-                </div>
-              )}
-              
-              <div className="absolute bottom-6 left-6 pointer-events-none">
-                <h4 className="text-white font-black uppercase italic tracking-tighter text-xl">{storyData.videoTitle || 'TITLE'}</h4>
-                <div className="w-12 h-1 bg-emerald-500 mt-1"></div>
-              </div>
-            </div>
-
-            <div className="mt-4 p-4 flex justify-between items-center border-t border-white/5">
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black text-white uppercase tracking-widest">{storyData.sectionTitle || 'Headline'}</span>
-                <span className="text-[8px] text-gray-600 truncate max-w-[200px]">{storyData.sectionDescription || 'Descr...'}</span>
-              </div>
-              <div className="bg-white/5 px-4 py-1.5 rounded-full text-[8px] font-black text-white uppercase tracking-widest border border-white/10">
-                Route: {storyData.collectionLink || 'none'}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
     </div>
   );
