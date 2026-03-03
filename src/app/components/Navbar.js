@@ -5,16 +5,23 @@ import { User, ShoppingBag, Search, Menu, X, ChevronRight, ArrowRight, Instagram
 import { ShopContext } from "../Context/ShopContext";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+// 1. LoginDrawer Import kiya
+import LoginDrawer from "./login"; 
 
 export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false); // Mobile search overlay state
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  
+  // 2. State for Login Drawer
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  const { cart, products, currency } = useContext(ShopContext);
+  // 3. Token destructure kiya taake check kar sakein user login hai ya nahi
+  const { cart, products, currency, token } = useContext(ShopContext);
+  
   const pathname = usePathname();
   const router = useRouter();
   const searchRef = useRef(null);
@@ -23,7 +30,7 @@ export default function Navbar() {
   const brands = ["Adidas", "Nike", "Puma", "Skechers", "Brooks", "New Balance"];
   const conditions = ["Premium" ,"Excellent", "Very Good"];
 
-  // --- SMART SEARCH LOGIC (Updated to 3 letters) ---
+  // --- SMART SEARCH LOGIC ---
   useEffect(() => {
     if (searchQuery.trim().length < 3) {
       setSearchResults([]);
@@ -49,6 +56,17 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // 4. Handle User Icon Click
+  const handleProfileClick = () => {
+    if (token) {
+      // Agar token hai, toh Profile page par jao
+      router.push("/profile");
+    } else {
+      // Agar token nahi hai, toh Login Drawer kholo
+      setIsLoginOpen(true);
+    }
+  };
 
   if (pathname === "/login" || pathname.includes("/admin")) return null;
 
@@ -114,7 +132,9 @@ export default function Navbar() {
             <Search size={24} />
           </button>
           
-          <User onClick={() => router.push("/profile")} className="text-white cursor-pointer" size={24} />
+          {/* 5. User Icon Updated with Handler */}
+          <User onClick={handleProfileClick} className="text-white cursor-pointer" size={24} />
+          
           <div onClick={() => router.push("/cart")} className="relative text-white cursor-pointer">
             <ShoppingBag size={24} />
             <span className="absolute -top-1.5 -right-2 bg-white text-[#0145f2] text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full">
@@ -123,6 +143,12 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      {/* --- 6. ADD LOGIN DRAWER COMPONENT HERE --- */}
+      <LoginDrawer 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+      />
 
       {/* --- MOBILE FULL-PAGE SEARCH OVERLAY --- */}
       {isMobileSearchOpen && (
