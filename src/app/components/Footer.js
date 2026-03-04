@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 import {
   Facebook,
   Instagram,
@@ -11,6 +11,7 @@ import { useContext } from 'react';
 import { ShopContext } from '../Context/ShopContext';
 import { usePathname } from "next/navigation";
 import Link from 'next/link';
+import { motion } from 'framer-motion'; // Framer Motion import
 
 export default function Footer() {
   const { location } = useContext(ShopContext);
@@ -18,18 +19,44 @@ export default function Footer() {
 
   if (pathname === "/login" || pathname.includes("/admin")) return null;
 
+  // Animation Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { duration: 0.6, ease: "easeOut" } 
+    },
+  };
+
   return (
-    // Background ko thoda aur deep blue kiya hai readability ke liye
     <footer className="bg-[#013ddb] text-white py-16 lg:py-24 relative overflow-hidden">
       
       {/* Decorative Accent */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-[120px] -mr-64 -mt-64 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
           
           {/* Column 1: Brand Identity */}
-          <div className="space-y-8">
+          <motion.div variants={itemVariants} className="space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl font-black tracking-tighter uppercase italic text-white">
                 SCARPA
@@ -37,7 +64,6 @@ export default function Footer() {
               <div className="h-1 w-12 bg-white rounded-full" />
             </div>
             
-            {/* Opacity badha di gayi hai: /70 se /90 */}
             <p className="text-white/90 text-[15px] leading-relaxed font-medium max-w-xs">
               Crafting excellence for the modern Pakistani pulse. Every step in a Scarpa pair is a statement of heritage and contemporary luxury.
             </p>
@@ -56,10 +82,10 @@ export default function Footer() {
                 </a>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Column 2: Navigation */}
-          <div className="lg:pl-10">
+          <motion.div variants={itemVariants} className="lg:pl-10">
             <h3 className="text-xs font-black uppercase tracking-[0.4em] mb-8 text-white/50">Shop</h3>
             <ul className="space-y-4">
                 <li>
@@ -90,12 +116,11 @@ export default function Footer() {
                     <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-all -translate-y-1" />
                   </Link>
                 </li>
-            
             </ul>
-          </div>
+          </motion.div>
 
           {/* Column 3: Utility */}
-          <div className="lg:pl-5">
+          <motion.div variants={itemVariants} className="lg:pl-5">
             <h3 className="text-xs font-black uppercase tracking-[0.4em] mb-8 text-white/50">Support</h3>
             <ul className="space-y-4">
               {['Contact Us', 'Shipping Policy', 'Exchange & Returns', 'Size Guide'].map((item) => (
@@ -107,10 +132,10 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Column 4: Reach Us */}
-          <div className="space-y-8">
+          <motion.div variants={itemVariants} className="space-y-8">
             <h3 className="text-xs font-black uppercase tracking-[0.4em] text-white/50">Reach Us</h3>
             <div className="space-y-6">
               <div className="flex items-start gap-4 group cursor-default">
@@ -143,20 +168,23 @@ export default function Footer() {
                 </div>
               </a>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-white/20 pt-10 flex flex-col md:flex-row justify-between items-center gap-8">
+        <motion.div 
+          variants={itemVariants}
+          className="border-t border-white/20 pt-10 flex flex-col md:flex-row justify-between items-center gap-8"
+        >
           <p className="text-[11px] font-bold text-white/60 uppercase tracking-[0.2em] order-2 md:order-1 text-center md:text-left">
-            © 2026 Scarpa FOOTWEAR. <span className="text-white font-black">ENGINEERED IN PAKISTAN.</span>
+            © 2026 Scarpa FOOTWEAR. <Link href="https://shezardev.vercel.app" target="_blank" className="text-white font-black hover:underline underline-offset-4 transition-all">ENGINEERED BY SHEZARDEV</Link>
           </p>
           <div className="flex space-x-10 order-1 md:order-2">
             <Link href="/privacy" className="text-[11px] font-bold text-white/60 uppercase tracking-[0.2em] hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="text-[11px] font-bold text-white/60 uppercase tracking-[0.2em] hover:text-white transition-colors">Terms</Link>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </footer>
   );
 }

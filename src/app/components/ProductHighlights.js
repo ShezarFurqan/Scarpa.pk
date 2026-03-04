@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { Maximize2 } from "lucide-react";
+import { motion } from "framer-motion"; // Import Framer Motion
 
 const storyData = [
   { id: 1, url: "/videos/video.mp4", title: "Velocity" },
@@ -10,10 +11,20 @@ const storyData = [
   { id: 4, url: "/videos/video.mp4", title: "Summit" },
 ];
 
+// Variants for individual cards
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.8, y: 50 },
+  visible: { 
+    opacity: 1, 
+    scale: 1, 
+    y: 0, 
+    transition: { type: "spring", stiffness: 100, damping: 15 } 
+  }
+};
+
 const VideoCard = ({ src, title }) => {
   const videoRef = useRef(null);
 
-  // Audio Safety: Fullscreen exit par mute kar do
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -28,25 +39,22 @@ const VideoCard = ({ src, title }) => {
     };
   }, []);
 
-  // Performance Logic: Scroll hone par hi play karein
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (videoRef.current) {
           if (entry.isIntersecting) {
-            // Video screen par hai toh play karo
             const playPromise = videoRef.current.play();
             if (playPromise !== undefined) {
-              playPromise.catch(() => { /* Auto-play catch */ });
+              playPromise.catch(() => {});
             }
           } else {
-            // Screen se bahar hai toh foran pause aur mute
             videoRef.current.pause();
             videoRef.current.muted = true;
           }
         }
       },
-      { threshold: 0.3 } // 30% video dikhte hi start ho jaye
+      { threshold: 0.3 }
     );
 
     if (videoRef.current) observer.observe(videoRef.current);
@@ -64,7 +72,8 @@ const VideoCard = ({ src, title }) => {
   };
 
   return (
-    <div 
+    <motion.div 
+      variants={cardVariants} // Animation added here
       className="relative w-[78vw] sm:w-[300px] md:w-[320px] lg:w-[280px] xl:w-[320px] aspect-[9/16] rounded-[2.5rem] overflow-hidden bg-gray-900 border-[6px] border-white shadow-2xl group transition-all duration-700 hover:scale-[1.02] snap-center shrink-0"
     >
       <video
@@ -74,10 +83,9 @@ const VideoCard = ({ src, title }) => {
         loop
         muted
         playsInline
-        preload="auto" // Foran load ho jaye taake user ko wait na karna pare
+        preload="auto"
       />
       
-      {/* Clean Black Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
       
       <div className="absolute bottom-10 left-8 right-8 flex justify-between items-end transform translate-y-2 group-hover:translate-y-0 transition-all duration-500">
@@ -93,7 +101,7 @@ const VideoCard = ({ src, title }) => {
           <Maximize2 size={20} strokeWidth={2.5} />
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -109,10 +117,30 @@ const VideoStoryWall = () => {
     }
   };
 
+  // Header and container variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2 }
+    }
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
+  };
+
   return (
-    <section className="w-full bg-[#edf1f5] py-24 overflow-hidden">
+    <motion.section 
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.1 }}
+      variants={containerVariants}
+      className="w-full bg-[#edf1f5] py-24 overflow-hidden"
+    >
       <div className="container mx-auto px-6 mb-16">
-        <div className="text-center space-y-4">
+        <motion.div variants={textVariants} className="text-center space-y-4">
            <div className="flex items-center justify-center gap-4">
               <div className="h-px w-12 bg-gray-300" />
               <p className="text-[#0145f2] text-xs font-black uppercase tracking-[0.5em]">The Archive</p>
@@ -121,21 +149,20 @@ const VideoStoryWall = () => {
            <h2 className="text-5xl md:text-8xl font-black text-[#0145f2] tracking-tighter uppercase italic">
              Our <span className="text-gray-300 not-italic">Stories</span>
            </h2>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Horizontal Scroll with Side-Peek */}
-      <div 
+      <motion.div 
         ref={scrollRef}
         onScroll={handleScroll}
+        variants={containerVariants} // Children (VideoCards) will stagger
         className="flex lg:justify-center items-center gap-6 overflow-x-auto px-10 md:px-12 pb-16 no-scrollbar snap-x snap-mandatory lg:snap-none"
       >
         {storyData.map((story) => (
           <VideoCard key={story.id} src={story.url} title={story.title} />
         ))}
-      </div>
+      </motion.div>
 
-      {/* Modern Progress Bar - Mobile Pe User Guidance */}
       <div className="flex justify-center -mt-8 lg:hidden">
         <div className="w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
           <div 
@@ -149,7 +176,7 @@ const VideoStoryWall = () => {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
-    </section>
+    </motion.section>
   );
 };
 

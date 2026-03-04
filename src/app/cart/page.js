@@ -30,7 +30,7 @@ export default function CartPage() {
         </div>
         <h2 className="text-4xl font-[1000] uppercase tracking-tighter mb-4 text-center">Your cart is empty</h2>
         <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-8">Looks like you haven't added anything yet</p>
-        <Link href="/collection/allproducts" className="bg-[#0145f2] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-lg shadow-[#0145f2]/20 hover:scale-105 transition-all active:scale-95">
+        <Link href="shop/collections/allproducts" className="bg-[#0145f2] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-lg shadow-[#0145f2]/20 hover:scale-105 transition-all active:scale-95">
           Start Shopping
         </Link>
       </div>

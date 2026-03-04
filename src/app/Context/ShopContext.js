@@ -20,6 +20,8 @@ const ShopContextProvider = (props) => {
     const router = useRouter();
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [checkoutMode, setCheckoutMode] = useState("cart"); 
+    const [buyNowItem, setBuyNowItem] = useState(null); 
 
 
     useEffect(() => {
@@ -215,7 +217,11 @@ const ShopContextProvider = (props) => {
         cart,
         setCart,
         landingPage,
-        setLandingPage
+        setLandingPage,
+        checkoutMode,
+        setCheckoutMode,
+        buyNowItem,
+        setBuyNowItem
     }
 
     if (loading) {

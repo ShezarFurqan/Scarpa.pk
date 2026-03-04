@@ -59,7 +59,7 @@ export default function AdminLayout({ children }) {
         {/* LOGO AREA */}
         <div className="h-16 flex items-center px-6 border-b border-white/5 shrink-0">
           <h1 className="text-xl font-black tracking-tighter uppercase">
-            ROCK <span className="text-white/20">CLIMB</span>
+            SCARPA <span className="text-white/20">ADMIN</span>
           </h1>
           <button onClick={() => setIsSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
             <X size={20} />

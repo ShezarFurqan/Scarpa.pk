@@ -1,10 +1,11 @@
 "use client";
 import React from 'react';
 import { Truck, RotateCcw, ShieldCheck, CreditCard } from 'lucide-react';
+import { motion } from 'framer-motion'; // Animation library
 
 /**
  * WhyChooseUs Section
- * Re-themed to Royal Blue & Light Gray
+ * Ultra Responsive + Scroll Animations
  */
 const WhyChooseUs = () => {
   const features = [
@@ -12,54 +13,90 @@ const WhyChooseUs = () => {
       icon: <Truck className="w-6 h-6 lg:w-7 lg:h-7" />,
       title: "Fast & Reliable Delivery",
       description: "Get your shoes delivered quickly and safely anywhere in Pakistan. Track your order in real-time.",
-      color: "text-[#0145f2]"
     },
     {
       icon: <RotateCcw className="w-6 h-6 lg:w-7 lg:h-7" />,
       title: "48-Hour Returns",
       description: "Found a defect? Return or exchange your shoes within 48 hours, no questions asked.",
-      color: "text-[#0145f2]"
     },
     {
       icon: <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7" />,
       title: "Premium Quality Assurance",
       description: "All products are carefully checked to ensure top-notch quality and long-lasting comfort.",
-      color: "text-[#0145f2]"
     },
     {
       icon: <CreditCard className="w-6 h-6 lg:w-7 lg:h-7" />,
       title: "Secure Payments",
       description: "Pay with confidence using encrypted transactions, supporting multiple payment methods.",
-      color: "text-[#0145f2]"
-    }
+    },
   ];
 
+  // Animation Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2, // Cards line se ayenge
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 30 },
+    visible: { 
+      opacity: 1, 
+      scale: 1, 
+      y: 0, 
+      transition: { type: "spring", stiffness: 100, damping: 15 } 
+    },
+  };
+
   return (
-    <section className="w-full bg-[#edf1f5] py-20 lg:pb-44">
-      <div className="container mx-auto px-6 lg:px-0">
+    <motion.section 
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      variants={containerVariants}
+      className="w-full bg-[#edf1f5] py-24 sm:py-32 lg:pb-44 overflow-hidden"
+    >
+      <div className="container mx-auto px-6 lg:px-12 xl:px-0 max-w-7xl">
 
-        {/* Section Header */}
-        <div className="mb-16 lg:mb-24 text-center space-y-4">
-          <p className="text-[#0145f2] text-xs font-black uppercase tracking-[0.4em]">Scarpa Promise</p>
-          <h2 className="text-4xl md:text-6xl font-black text-[#0145f2] tracking-tighter uppercase italic">
-            Why Shop With Us
+        {/* Section Header Animation */}
+        <motion.div 
+          variants={itemVariants}
+          className="mb-16 lg:mb-24 text-center space-y-4"
+        >
+          <div className="flex items-center justify-center gap-3">
+             <div className="h-[2px] w-6 bg-[#0145f2]/30" />
+             <p className="text-[#0145f2] text-[10px] sm:text-xs font-black uppercase tracking-[0.5em]">
+               Scarpa Promise
+             </p>
+             <div className="h-[2px] w-6 bg-[#0145f2]/30" />
+          </div>
+          
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-[#0145f2] tracking-tighter uppercase italic leading-none">
+            Why <span className="text-gray-400 not-italic">Shop</span> With Us
           </h2>
-          <div className="h-1.5 w-16 bg-[#0145f2]/10 mx-auto rounded-full" />
-        </div>
+          <div className="h-2 w-20 bg-[#0145f2]/10 mx-auto rounded-full" />
+        </motion.div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        {/* Features Grid Animation */}
+        {/* Mobile: 1 Col, Tablet: 2 Col, Desktop: 4 Col */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={index}
-              className="group relative p-10 rounded-[32px] bg-white border border-[#0145f2]/5 transition-all duration-500 hover:shadow-[0_30px_60px_-15px_rgba(1,69,242,0.1)] hover:-translate-y-2"
+              variants={itemVariants} // Individually animating cards
+              whileHover={{ scale: 1.05, y: -8 }} // Added hover pop
+              className="group relative p-8 sm:p-10 rounded-[32px] bg-white border border-[#0145f2]/5 transition-all duration-500 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.02)] hover:shadow-[0_40px_70px_-20px_rgba(1,69,242,0.15)] overflow-hidden"
             >
-              {/* Icon Container with Blue Glow */}
-              <div className={`mb-8 inline-flex p-4 rounded-2xl bg-[#0145f2]/5 ${feature.color} transition-all duration-500 group-hover:bg-[#0145f2] group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-600/30`}>
+              {/* Animated Icon Container */}
+              <div className={`mb-10 inline-flex p-5 rounded-[22px] bg-[#0145f2]/5 text-[#0145f2] transition-all duration-500 group-hover:bg-[#0145f2] group-hover:text-white group-hover:shadow-xl group-hover:shadow-blue-600/30 group-hover:rotate-[10deg]`}>
                 {feature.icon}
               </div>
 
-              <h3 className="text-[#0145f2] font-black text-xl mb-4 tracking-tight uppercase italic">
+              <h3 className="text-[#0145f2] font-black text-xl mb-4 tracking-tight uppercase italic leading-[1.2]">
                 {feature.title}
               </h3>
 
@@ -67,16 +104,21 @@ const WhyChooseUs = () => {
                 {feature.description}
               </p>
 
-              {/* Decorative Corner Element */}
-              <div className="absolute top-6 right-6 opacity-20 transition-opacity duration-500 group-hover:opacity-100">
-                <div className="w-2 h-2 rounded-full bg-[#0145f2]" />
+              {/* Decorative Background Element (Subtle "01", "02" index) */}
+              <div className="absolute -bottom-4 -right-2 text-[100px] font-black text-[#0145f2]/[0.02] select-none pointer-events-none group-hover:opacity-50 transition-opacity">
+                0{index + 1}
               </div>
-            </div>
+
+              {/* Top Accent Dot */}
+              <div className="absolute top-8 right-8 opacity-20 group-hover:opacity-100 transition-opacity">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#0145f2]" />
+              </div>
+            </motion.div>
           ))}
         </div>
 
       </div>
-    </section>
+    </motion.section>
   );
 };
 
