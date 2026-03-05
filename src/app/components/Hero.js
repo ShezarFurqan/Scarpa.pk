@@ -2,23 +2,29 @@
 
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, Play } from 'lucide-react';
-import { motion } from 'framer-motion'; // Framer Motion Import
+import { motion } from 'framer-motion';
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
+// Updated context hook
 import { useLoading } from '../Context/LoginContext';
 
 const Hero = () => {
   const [content, setContent] = useState(null);
-  const { setLoading } = useLoading();
+  // Destructure updated functions from your new context
+  const { startLoading, stopLoading } = useLoading();
 
   const fetchHeroContent = async () => {
-    setLoading(true);
+    // 1. Loader start with a premium message
+    startLoading("Fetching latest collection..."); 
+    
     try {
       const docRef = doc(db, "heroSection", "singleton");
       const docSnap = await getDoc(docRef);
+      
       if (docSnap.exists()) {
         setContent(docSnap.data());
       } else {
+        // Fallback content
         setContent({
           badge: "Scarpa Premium Edition",
           titleLine1: "ELEVATE",
@@ -30,14 +36,18 @@ const Hero = () => {
         });
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Firebase Error:", error);
+    } finally {
+      // 2. Stop loading no matter what happens (Success or Error)
+      stopLoading();
     }
-    setLoading(false);
   };
 
-  useEffect(() => { fetchHeroContent(); }, []);
+  useEffect(() => { 
+    fetchHeroContent(); 
+  }, []);
 
-  // Animation Variants
+  // --- Animation Variants (Keep as is for 0% UI change) ---
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -61,7 +71,8 @@ const Hero = () => {
     }
   };
 
-  if (!content) return null;
+  // Prevent layout jump, though loader covers it
+  if (!content) return <div className="min-h-screen bg-[#edf1f5]" />;
 
   return (
     <motion.section 
