@@ -225,7 +225,7 @@ export default function Navbar() {
 
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
               <nav className="space-y-2">
-                <Link href="/shop" onClick={() => setIsSidebarOpen(false)} className="text-4xl font-[1000] text-gray-900 flex items-center justify-between hover:text-[#0145f2] transition-all py-4 tracking-tighter uppercase">SHOP ALL <ArrowRight size={22} /></Link>
+                <Link href="/shop/collections/allproducts" onClick={() => setIsSidebarOpen(false)} className="text-4xl font-[1000] text-gray-900 flex items-center justify-between hover:text-[#0145f2] transition-all py-4 tracking-tighter uppercase">SHOP ALL <ArrowRight size={22} /></Link>
                 
                 <div className="py-4 border-b border-gray-200">
                   <button onClick={() => setOpenSubMenu(openSubMenu === 'cats' ? null : 'cats')} className="w-full flex justify-between items-center text-xl font-black text-gray-800 hover:text-[#0145f2] transition-colors uppercase">Categories <ChevronRight className={`transition-transform ${openSubMenu === 'cats' ? 'rotate-90' : ''}`} /></button>
