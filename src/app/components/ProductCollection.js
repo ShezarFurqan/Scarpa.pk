@@ -62,6 +62,12 @@ const ProductsCollection = ({ collectionName }) => {
     if (collectionName) fetchCollectionAndProducts();
   }, [collectionName]);
 
+
+  useEffect(()=>{
+    console.log("load tu hua hai")
+    console.log(displayProducts)
+  },[displayProducts])
+
   // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -174,7 +180,7 @@ const ProductsCollection = ({ collectionName }) => {
           className="mt-24 flex justify-center"
         >
           <button
-            onClick={() => router.push(`/shop/collection/${collectionName}`)}
+            onClick={() => router.push(`/shop/collection/${collectionName.replace(/\s+/g, "").toLowerCase()}`)}
             className="group relative flex items-center gap-6 px-12 py-5 bg-white border border-[#0145f2]/10 rounded-2xl text-[#0145f2] text-sm font-black uppercase tracking-widest hover:bg-[#0145f2] hover:text-white transition-all duration-500 shadow-xl shadow-blue-900/5 overflow-hidden"
           >
             <span className="relative z-10">Explore Full Collection</span>

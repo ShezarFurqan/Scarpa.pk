@@ -22,12 +22,11 @@ export default function CollectionPage({ params }) {
 
   const formatForMatch = (str) => str?.toLowerCase().replace(/\s+/g, '') || "";
 
-  // 1. FETCH CUSTOM COLLECTIONS (Agar type 'custom' ho ya slug title se match karna ho)
+  // 1. FETCH CUSTOM COLLECTIONS
   useEffect(() => {
     const fetchAndMatch = async () => {
       try {
         setLoading(true);
-        // Hum sirf tabhi Firebase check karte hain agar type 'custom' ho ya humein specialized collection chahiye
         if (type === 'custom' || type === 'collection') {
           const querySnapshot = await getDocs(collection(db, 'Productcollections'));
           const formattedSlug = formatForMatch(slug);
@@ -55,9 +54,10 @@ export default function CollectionPage({ params }) {
     const formattedSlug = formatForMatch(slug);
     const formattedType = type?.toLowerCase();
 
-    // Pehle check karein agar Firebase se custom collection mili hai
-    if (dbCollection) {
-      result = dbCollection.selectedProducts || [];
+    // PEHLE: Agar Firebase collection mili hai, toh IDs se context products fetch karo
+    if (dbCollection && products) {
+      // Hum global products list mein se wo products nikaal rahe hain jinki ID collection ke selectedProducts array mein hai
+      result = products.filter(p => dbCollection.selectedProducts?.includes(p.id));
     }
     // Warna context ke products par dynamic filter lagayein
     else if (products) {
@@ -72,10 +72,8 @@ export default function CollectionPage({ params }) {
           case 'condition':
             return formatForMatch(product.condition) === formattedSlug;
           case 'size':
-            // Check agar product ke sizes array mein ye slug maujood hai            
             return product.sizes?.some(s => formatForMatch(s).replace("/", "") === formattedSlug);
           default:
-            // Fallback: category ya brand dono mein check karlo
             return formatForMatch(product.category) === formattedSlug || formatForMatch(product.brand) === formattedSlug;
         }
       });
@@ -153,7 +151,6 @@ export default function CollectionPage({ params }) {
           </div>
 
           <div className="w-full lg:w-auto flex flex-wrap gap-4 items-center">
-            {/* Price Filter */}
             <div className="bg-white rounded-[2rem] px-8 py-4 shadow-sm border border-gray-50 flex flex-col gap-2 min-w-[260px]">
               <div className="flex justify-between items-center">
                 <span className="text-[9px] font-black uppercase tracking-widest text-[#0145f2]">Price Ceiling</span>
@@ -167,7 +164,6 @@ export default function CollectionPage({ params }) {
               />
             </div>
 
-            {/* Sort Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setSortOpen(!sortOpen)}
@@ -203,7 +199,7 @@ export default function CollectionPage({ params }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
             {filteredProducts.map((product) => (
               <ProductCard
-                size={product.sizes[0]}
+                size={product.sizes?.[0]}
                 key={product.id}
                 quantity={Number(product.qty)}
                 fakePrice={product.fakePrice}

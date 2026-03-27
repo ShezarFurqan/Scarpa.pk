@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ArrowRight, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getDoc, doc } from "firebase/firestore";
@@ -9,12 +9,14 @@ import { db } from "../firebase";
 import { useLoading } from '../Context/LoginContext';
 import Head from "next/head";
 import Image from "next/image";
+import { ShopContext } from '../Context/ShopContext';
 const MotionImage = motion(Image);
 
 const Hero = () => {
   const [content, setContent] = useState(null);
   // Destructure updated functions from your new context
   const { startLoading, stopLoading } = useLoading();
+  const { router } = useContext(ShopContext)
 
   const fetchHeroContent = async () => {
     // 1. Loader start with a premium message
@@ -161,6 +163,7 @@ const Hero = () => {
               className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4 pt-1 lg:pt-4"
             >
               <motion.button
+              onClick={()=>{router.push("/shop/collection/allproducts")}}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="w-full sm:w-auto justify-center px-8 py-3 lg:px-10 lg:py-4 bg-[#0145f2] text-white rounded-full font-bold transition-all hover:bg-black shadow-lg shadow-blue-500/20 flex items-center gap-2 text-sm lg:text-base"
