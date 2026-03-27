@@ -12,8 +12,8 @@ import { db } from '../../firebase'
 import DeleteConfirmationModal from '@/app/components/DeleteConfirmationModal'
 
 // --- CONSTANTS FOR DROPDOWNS ---
-const CATEGORIES = ['None','Sneakers', 'Running Shoes', 'Casual Shoes', 'Sports Shoes', 'Premium Collection']
-const BRAND = ['None', 'Nike', 'Puma', 'Adidas', 'New Balance', 'Brooks', 'Sketchers']
+const CATEGORIES = ['None', 'Sneakers', 'Running Shoes', 'Casual Shoes', 'Sports Shoes', 'Premium Collection']
+const BRAND = ['None', 'Nike', 'Hoka',"Asics","Fila","Heydude", "AllBirds","Kalenji","EasySpirit","Scarpa", "Colombia","Reebok","OnCloud","Altra", "UnderArmour","Qixing",'Puma', 'Adidas', 'New Balance', 'Brooks', 'Sketchers']
 const CONDITIONS = ['Premium', 'Excellent', 'Very Good'];
 const PRODUCT_STATUSES = [
   'None',
@@ -30,9 +30,9 @@ const PRODUCT_STATUSES = [
 
 // UK and EU Sizes Constant
 const AVAILABLE_SIZES = [
-  "UK 6 / EU 39", "UK 6.5 / EU 40", "UK 7 / EU 41", "UK 7.5 / EU 41.5",
-  "UK 8 / EU 42", "UK 8.5 / EU 42.5", "UK 9 / EU 43", "UK 9.5 / EU 44",
-  "UK 10 / EU 44.5", "UK 10.5 / EU 45", "UK 11 / EU 46", "UK 12 / EU 47"
+  "UK 5 / EU 39", "UK 6 / EU 40", "UK 7 / EU 41", "UK 7.5 / EU 41.5",
+  "UK 8 / EU 42", "UK 8.5 / EU 42.5", "UK 9 / EU 43", "UK 9.5 / EU 43.5",
+  "UK 10 / EU 44", "UK 10.5 / EU 44.5", "UK 11 / EU 45"
 ]
 
 // --- CLOUDINARY UPLOAD FUNCTION (UNCHANGED) ---
@@ -78,7 +78,7 @@ export default function ProductManagement() {
     qty: '',
     category: 'None',
     status: 'None',
-    condition: 'premium',
+    condition: 'Premium',
     brand: '',
     description: '',
     images: [],
@@ -229,7 +229,22 @@ export default function ProductManagement() {
   // --- UI HELPERS ---
   const closeProductModal = () => {
     setIsProductModalOpen(false); setIsEditMode(false); setSelectedProductId(null)
-    setNewProduct({ title: '', purchasingPrice: '', price: '', fakePrice: '', qty: '', category: 'Mens', status: 'None', brand: '', description: '', images: [], sizes: [], isActive: true })
+    // FIX: condition: 'Premium' add kar diya aur category: 'None' kar diya
+    setNewProduct({
+      title: '',
+      purchasingPrice: '',
+      price: '',
+      fakePrice: '',
+      qty: '',
+      category: 'None', // 'Mens' list me nahi tha isliye 'None' kiya
+      status: 'None',
+      condition: 'Premium', // Ye miss ho gaya tha!
+      brand: '',
+      description: '',
+      images: [],
+      sizes: [],
+      isActive: true
+    })
     setImageFiles([]); setPreviewUrls([])
   }
 
@@ -250,7 +265,9 @@ export default function ProductManagement() {
       sizes: product.sizes || [],
       isActive: product.isActive ?? true,
       category: product.category || 'Mens',
-      status: product.status || 'None'
+      status: product.status || 'None',
+      condition: product.condition || 'Premium',
+      brand: product.brand || ''
     })
     setIsProductModalOpen(true)
   }
@@ -472,7 +489,7 @@ export default function ProductManagement() {
                     {BRAND.map(c => <option key={c} value={c} className="bg-[#0D0D0D]">{c}</option>)}
                   </select>
                 </div>
-                 <div className="space-y-1">
+                <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Condition</label>
                   <select
                     value={newProduct.condition}

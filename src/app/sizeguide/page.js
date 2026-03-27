@@ -6,12 +6,12 @@ const SizeGuide = () => {
   const [activeTab, setActiveTab] = useState('footwear');
 
   const footwearSizes = [
-    { uk: "6", eu: "39", us: "7", cm: "25.0" },
+    { uk: "6", eu: "40", us: "7", cm: "25.0" },
     { uk: "7", eu: "41", us: "8", cm: "26.0" },
     { uk: "8", eu: "42", us: "9", cm: "27.0" },
     { uk: "9", eu: "43", us: "10", cm: "28.0" },
-    { uk: "10", eu: "44.5", us: "11", cm: "29.0" },
-    { uk: "11", eu: "46", us: "12", cm: "30.0" },
+    { uk: "10", eu: "44", us: "11", cm: "29.0" },
+    { uk: "11", eu: "45", us: "12", cm: "30.0" },
   ];
 
   return (

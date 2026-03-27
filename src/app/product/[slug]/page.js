@@ -189,20 +189,23 @@ export default function ProductDetailPage({ params }) {
                 )}
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-[900] tracking-tighter text-gray-900 leading-[0.95] uppercase break-words">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-[800] leading-2 tracking-tighter text-gray-900 leading-[0.95] break-words">
                 {product.title}
               </h1>
 
               <div className="flex items-center gap-4 pt-2">
                 <span className="text-2xl md:text-3xl font-black text-gray-900">
-                  ${Number(product.price).toLocaleString()}
+                  {Number(product.price).toLocaleString()}
                 </span>
                 {product.fakePrice && (
-                  <span className="text-lg text-gray-300 line-through font-bold">
-                    ${Number(product.fakePrice).toLocaleString()}
+                  <span className="text-lg text-gray-700 line-through font-bold">
+                    {Number(product.fakePrice).toLocaleString()}
                   </span>
                 )}
               </div>
+
+              <h1 className=' items-center font-bold' >Condition: {product.condition}</h1>
+
 
               <div className="flex items-center gap-2">
                 <StarRating rating={product.rating || 5} size={14} />
@@ -297,7 +300,7 @@ export default function ProductDetailPage({ params }) {
 
             <div className="space-y-3">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 border-b border-black pb-1 inline-block">Description</h3>
-              <p className="text-sm text-gray-500 leading-relaxed font-medium">
+              <p className="text-sm text-center text-gray-500 leading-relaxed font-medium">
                 {product.description}
               </p>
             </div>
