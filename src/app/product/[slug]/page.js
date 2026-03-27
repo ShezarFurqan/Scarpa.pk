@@ -178,10 +178,14 @@ export default function ProductDetailPage({ params }) {
           {/* --- RIGHT: PRODUCT INFO --- */}
           <div className="lg:col-span-5 space-y-6 md:space-y-8 pt-2 md:pt-4 w-full">
             <div className="space-y-3">
+
+              {/* 1. CATEGORY & BESTSELLER ROW */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">
-                  {product.category == "none" || ""}
-                </span>
+                {/* Blue Div for Category */}
+                <div onClick={()=>{router.push(`/shop/category/${product.category}`)}} className="px-2.5 py-1 cursor-pointer bg-[#1B45F2] text-[#EDF1F5] text-[8px] md:text-xs font-black uppercase tracking-[0.15em] rounded-md ">
+                  {product.category && product.category !== "none" ? product.category : "Sneakers"}
+                </div>
+
                 {product.bestseller && (
                   <span className="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wider rounded-full border border-amber-100 flex items-center gap-1">
                     <Zap size={10} fill="currentColor" /> Bestseller
@@ -189,10 +193,12 @@ export default function ProductDetailPage({ params }) {
                 )}
               </div>
 
+              {/* TITLE */}
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-[800] leading-2 tracking-tighter text-gray-900 leading-[0.95] break-words">
                 {product.title}
               </h1>
 
+              {/* PRICE */}
               <div className="flex items-center gap-4 pt-2">
                 <span className="text-2xl md:text-3xl font-black text-gray-900">
                   {Number(product.price).toLocaleString()}
@@ -204,17 +210,26 @@ export default function ProductDetailPage({ params }) {
                 )}
               </div>
 
-              <h1 className=' items-center font-bold' >Condition: {product.condition}</h1>
+              {/* 2. RATINGS, FEEDBACKS & CONDITION ROW */}
+              <div className="flex items-center gap-3 pt-1 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <StarRating rating={product.rating || 5} size={14} />
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                    {reviews?.length || 0} Feedbacks
+                  </span>
+                </div>
 
+                {/* Dot Separator */}
+                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
 
-              <div className="flex items-center gap-2">
-                <StarRating rating={product.rating || 5} size={14} />
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                  {reviews.length} Feedbacks
+                {/* Styled Condition Tag */}
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 bg-gray-100 px-2 py-0.5 rounded-sm border border-gray-200">
+                  Condition: {product.condition || 'New'}
                 </span>
               </div>
             </div>
 
+            {/* SIZE SELECTOR */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-black uppercase tracking-widest text-gray-900">Select Size</span>
@@ -260,16 +275,16 @@ export default function ProductDetailPage({ params }) {
                     <Plus size={14} />
                   </button>
                 </div>
-              </div>
 
-              <button
-                onClick={handleAddToCart}
-                className="w-full bg-white text-black h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.2em] hover:bg-gray-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-black/10 active:scale-95"
-              >
-                  <ShoppingBag size={16} className="flex-shrink-0" /> 
+                {/* Add To Bag (Moved up next to quantity for a better layout) */}
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-white text-black h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.2em] hover:bg-gray-800 hover:text-white border-2 border-gray-100 hover:border-gray-800 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
+                >
+                  <ShoppingBag size={16} className="flex-shrink-0" />
                   <span className="whitespace-nowrap">Add To Bag</span>
-
-              </button>
+                </button>
+              </div>
 
               {/* Buy It Now */}
               <button
@@ -289,6 +304,7 @@ export default function ProductDetailPage({ params }) {
               </button>
             </div>
 
+            {/* TRUST BADGES */}
             <div className="grid grid-cols-3 gap-2 py-6 border-t border-gray-100">
               {[{ i: Truck, t: "Fast Ship" }, { i: ShieldCheck, t: "Secure" }, { i: CheckCircle2, t: "Original" }].map((item, idx) => (
                 <div key={idx} className="flex flex-col items-center gap-1 text-center">
@@ -298,9 +314,10 @@ export default function ProductDetailPage({ params }) {
               ))}
             </div>
 
+            {/* DESCRIPTION */}
             <div className="space-y-3">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 border-b border-black pb-1 inline-block">Description</h3>
-              <p className="text-sm text-center text-gray-500 leading-relaxed font-medium">
+              <p className="text-sm text-center md:text-left text-gray-500 leading-relaxed font-medium">
                 {product.description}
               </p>
             </div>
