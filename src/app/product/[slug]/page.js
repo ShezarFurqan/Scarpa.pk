@@ -35,6 +35,7 @@ export default function ProductDetailPage({ params }) {
 
   const imgRef = useRef(null);
   const [zoom, setZoom] = useState({ x: 50, y: 50, show: false });
+  const isOutOfStock = product?.qty <= 0;
 
   const handleMove = (e) => {
     const rect = imgRef.current.getBoundingClientRect();
@@ -278,35 +279,50 @@ export default function ProductDetailPage({ params }) {
 
               {/* --- ACTION BUTTONS --- */}
               <div className="space-y-3 pt-2 w-full">
-                <div className="flex flex-row gap-2 sm:gap-3 w-full">
-                  {/* Quantity */}
-                  <div className="flex items-center bg-white rounded-2xl border border-gray-100 w-[100px] sm:w-32 flex-shrink-0 justify-between p-1 shadow-sm">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl transition-all">
-                      <Minus size={14} />
-                    </button>
-                    <span className="font-black text-xs sm:text-sm text-gray-900">{quantity}</span>
-                    <button onClick={() => setQuantity(prev => prev < product.qty ? prev + 1 : prev)} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl transition-all">
-                      <Plus size={14} />
-                    </button>
+                {isOutOfStock ? (
+                  // Sold Out State
+                  <div className="w-full bg-blue-50 border-2 border-blue-100 text-blue-600 h-14 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                    <Info size={16} /> Out of Stock
                   </div>
+                ) : (
+                  <>
+                    <div className="flex flex-row gap-2 sm:gap-3 w-full">
+                      {/* Quantity */}
+                      <div className="flex items-center bg-white rounded-2xl border border-gray-100 w-[100px] sm:w-32 flex-shrink-0 justify-between p-1 shadow-sm">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="font-black text-xs sm:text-sm text-gray-900">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(prev => prev < product.qty ? prev + 1 : prev)}
+                          className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
 
-                  {/* Add To Bag */}
-                  <button
-                    onClick={handleAddToCart}
-                    className="flex-1 bg-white text-black h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.2em] hover:bg-gray-800 hover:text-white border-2 border-gray-100 hover:border-gray-800 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
-                  >
-                    <ShoppingBag size={16} className="flex-shrink-0" />
-                    <span className="whitespace-nowrap">Add To Bag</span>
-                  </button>
-                </div>
+                      {/* Add To Bag */}
+                      <button
+                        onClick={handleAddToCart}
+                        className="flex-1 bg-white text-black h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] hover:bg-gray-800 hover:text-white border-2 border-gray-100 transition-all flex items-center justify-center gap-2 active:scale-95"
+                      >
+                        <ShoppingBag size={16} />
+                        <span>Add To Bag</span>
+                      </button>
+                    </div>
 
-                {/* Buy It Now */}
-                <button
-                  onClick={handleBuyItNow}
-                  className="w-full bg-black text-white h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.2em] hover:bg-gray-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-black/10 active:scale-95"
-                >
-                  <Zap size={16} fill="currentColor" className="flex-shrink-0" /> Buy It Now
-                </button>
+                    {/* Buy It Now */}
+                    <button
+                      onClick={handleBuyItNow}
+                      className="w-full bg-black text-white h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all flex items-center justify-center gap-2 shadow-xl active:scale-95"
+                    >
+                      <Zap size={16} fill="currentColor" /> Buy It Now
+                    </button>
+                  </>
+                )}
 
                 {/* Ask Anything Option */}
                 <button
@@ -364,14 +380,40 @@ export default function ProductDetailPage({ params }) {
               )}
 
               {activeTab === 'condition' && (
-                <div className="text-sm md:text-base text-gray-500 leading-relaxed font-medium">
-                  {/* Yahan Condition Guide ka content add karein */}
+                <div className="whitespace-pre-wrap text-sm md:text-base text-gray-500 leading-relaxed font-medium">
+                  {`Condition Guide
+
+PREMIUM +
+
+Item is brand new and hasn't been worn before.
+
+PREMIUM
+
+Item is in almost brand-new condition.
+
+EXCELLENT
+
+Item has very little signs of wear.
+
+VERY GOOD
+
+Item has visible signs of wear and use.`}
                 </div>
               )}
 
               {activeTab === 'delivery' && (
-                <div className="text-sm md:text-base text-gray-500 leading-relaxed font-medium">
-                  {/* Yahan Delivery & Return ka content add karein */}
+                <div className="whitespace-pre-wrap text-sm md:text-base text-gray-500 leading-relaxed font-medium">
+                  {`Facing size issues? Don't like the product? Wrong or defective product delivered?
+
+Don't worry! Scarpa.pk offers a 7-day hassle-free return policy. To qualify for a return or exchange, all items must be unworn, unused, and with product tag attached.
+
+Once we receive the product back as a return, we'll provide you with the full amount.
+
+For further assistance, please email us at:
+rockclimb.rc@gmail.com
+
+Quick Help:
+Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}
                 </div>
               )}
             </div>

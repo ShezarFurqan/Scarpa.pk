@@ -22,6 +22,7 @@ const ShopContextProvider = (props) => {
     const [loading, setLoading] = useState(true);
     const [checkoutMode, setCheckoutMode] = useState("cart"); 
     const [buyNowItem, setBuyNowItem] = useState(null); 
+    const [ShippingFee, setShippingFee] = useState("200");
 
 
     useEffect(() => {
@@ -221,7 +222,8 @@ const ShopContextProvider = (props) => {
         checkoutMode,
         setCheckoutMode,
         buyNowItem,
-        setBuyNowItem
+        setBuyNowItem,
+        ShippingFee
     }
 
     if (loading) {

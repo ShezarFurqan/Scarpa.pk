@@ -66,7 +66,6 @@ export default function CollectionPage({ params }) {
 
         switch (formattedType) {
           case 'category':
-            console.log(product.sizes);
             return formatForMatch(product.category) === formattedSlug;
           case 'brand':
             return formatForMatch(product.brand) === formattedSlug;

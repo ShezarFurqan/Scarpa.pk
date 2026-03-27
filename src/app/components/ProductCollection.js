@@ -1,38 +1,65 @@
 'use client';
 import React, { useState, useEffect, useContext } from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; 
 import ProductCard from './ProductCard';
 import { ShopContext } from '../Context/ShopContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, documentId } from 'firebase/firestore';
 
 const ProductsCollection = ({ collectionName }) => {
-  // ShopContext se products (master list) nikaal li
-  const { router, products } = useContext(ShopContext);
+  const { router } = useContext(ShopContext);
   const [collectionData, setCollectionData] = useState(null);
+  const [displayProducts, setDisplayProducts] = useState([]); // Products ka actual data yahan store hoga
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchThisCollection = async () => {
+    const fetchCollectionAndProducts = async () => {
       try {
         setLoading(true);
+        
+        // 1. Pehle Collection fetch karo title ke base par
         const q = query(
           collection(db, 'Productcollections'),
           where('title', '==', collectionName)
         );
         const querySnapshot = await getDocs(q);
+        
         if (!querySnapshot.empty) {
-          const data = querySnapshot.docs[0].data();
-          setCollectionData(data);
+          const colData = querySnapshot.docs[0].data();
+          setCollectionData(colData);
+
+          const productIds = colData.selectedProducts || [];
+
+          // 2. Agar IDs hain, toh unka updated data fetch karo
+          if (productIds.length > 0) {
+            // Firebase "in" query max 30 items support karti hai, jo collection ke liye kaafi hai
+            const pQuery = query(
+              collection(db, 'products'),
+              where(documentId(), 'in', productIds)
+            );
+            const pSnapshot = await getDocs(pQuery);
+            const fetchedProducts = pSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+            
+            // IDs ka order maintain karne ke liye (optional but good)
+            const sortedProducts = productIds
+              .map(id => fetchedProducts.find(p => p.id === id))
+              .filter(p => p !== undefined);
+
+            setDisplayProducts(sortedProducts);
+          }
         }
       } catch (error) {
-        console.error("Error fetching collection:", error);
+        console.error("Error fetching collection or products:", error);
       } finally {
         setLoading(false);
       }
     };
-    if (collectionName) fetchThisCollection();
+
+    if (collectionName) fetchCollectionAndProducts();
   }, [collectionName]);
 
   // Animation Variants
@@ -63,12 +90,6 @@ const ProductsCollection = ({ collectionName }) => {
   );
 
   if (!collectionData) return null;
-
-  // --- LOGIC CHANGE START ---
-  // Collection mein saved IDs ko master 'products' array se match karke full data nikalna
-  const savedIds = collectionData.selectedProducts || [];
-  const displayProducts = products.filter(p => savedIds.includes(p.id));
-  // --- LOGIC CHANGE END ---
 
   return (
     <motion.section 

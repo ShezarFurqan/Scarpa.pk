@@ -14,13 +14,13 @@ import Link from 'next/link'
 import { ShopContext } from '../Context/ShopContext'
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, router } = useContext(ShopContext);
+  const { cart, removeFromCart, updateQuantity, router, ShippingFee } = useContext(ShopContext);
 
   const { subtotal, shipping, total } = useMemo(() => {
     const sub = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
-    const ship = sub > 300 || sub === 0 ? 0 : 15.00
+    const ship = ShippingFee ? Number(ShippingFee) : 200
     return { subtotal: sub, shipping: ship, total: sub + ship }
-  }, [cart])
+  }, [ShippingFee, cart])
 
   if (cart.length === 0) {
     return (
@@ -109,28 +109,22 @@ export default function CartPage() {
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-gray-50 pb-6">
                 <span className="uppercase tracking-[0.2em] text-[10px] font-black text-gray-400">Subtotal</span>
-                <span className="text-xl font-black tracking-tight text-gray-900">${subtotal.toFixed(2)}</span>
+                <span className="text-xl font-black tracking-tight text-gray-900">Rs.{subtotal.toFixed(2)}</span>
               </div>
               
               <div className="flex justify-between items-center border-b border-gray-50 pb-6">
                 <span className="uppercase tracking-[0.2em] text-[10px] font-black text-gray-400">Shipping Charge</span>
                 <span className={`text-xl font-black tracking-tight ${shipping === 0 ? 'text-gray-900' : 'text-gray-900'}`}>
-                  {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+                  {shipping === 0 ? 'FREE' : `Rs.${shipping.toFixed(2)}`}
                 </span>
               </div>
-
-              {shipping > 0 && (
-                <div className="bg-[#0145f2]/5 border border-[#0145f2]/10 text-[#0145f2] text-[10px] p-4 rounded-2xl text-center font-black uppercase tracking-[0.15em]">
-                  Spend <span className="underline underline-offset-4 text-[#0145f2]">${(300 - subtotal).toFixed(2)}</span> more to unlock <span className="italic">Free Shipping</span>
-                </div>
-              )}
 
               <div className="pt-8 flex justify-between items-end">
                 <div>
                     <span className="text-[10px] uppercase font-black tracking-[0.3em] text-[#0145f2]">Total Payable</span>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 italic">Includes all taxes</p>
                 </div>
-                <span className="text-5xl md:text-6xl font-[1000] tracking-tighter italic text-gray-900">${total.toFixed(2)}</span>
+                <span className="text-5xl md:text-6xl font-[1000] tracking-tighter italic text-gray-900">Rs.{total.toFixed(2)}</span>
               </div>
 
               <div className="pt-10 flex flex-col gap-6">

@@ -1,5 +1,5 @@
 'use client';
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import Image from 'next/image';
 import { ArrowUpRight } from "lucide-react";
 import { ShopContext } from "../Context/ShopContext";
@@ -16,7 +16,6 @@ const ProductCard = ({
   quantity,
 }) => {
   const { router } = useContext(ShopContext);
-
   return (
     <div
       onClick={() => router.push(`/product/${productId}`)}
@@ -24,7 +23,7 @@ const ProductCard = ({
     >
       {/* --- IMAGE SECTION --- */}
       <div className="relative w-full aspect-[1/1.1] bg-[#edf1f5] overflow-hidden">
-        
+
         {/* Status Badge */}
         {(quantity <= 0 || status) && (
           <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20">
@@ -68,9 +67,9 @@ const ProductCard = ({
         </h3>
 
         <div className="flex gap-1 flex-wrap mb-2">
-            <span className="text-[8px] md:text-[10px] font-bold bg-gray-50 text-gray-500 px-2 py-1 md:px-3 md:py-1.5 rounded-lg border border-[#0145f2]/10">
-              {size}
-            </span>
+          <span className="text-[8px] md:text-[10px] font-bold bg-gray-50 text-gray-500 px-2 py-1 md:px-3 md:py-1.5 rounded-lg border border-[#0145f2]/10">
+            {size}
+          </span>
         </div>
 
         <div className="mt-auto pt-2 md:pt-4 border-t border-gray-50 flex items-center justify-between">
@@ -86,8 +85,8 @@ const ProductCard = ({
           </div>
 
           <div className="h-8 w-8 md:h-11 md:w-11 rounded-xl md:rounded-2xl bg-[#0145f2] text-white flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:bg-[#0145f2] md:group-hover:w-28 transition-all duration-500 overflow-hidden">
-              <span className="hidden md:group-hover:block text-[10px] font-black uppercase tracking-widest ml-2 whitespace-nowrap">View Item</span>
-              <ArrowUpRight size={16} className="md:min-w-[44px]" strokeWidth={3} />
+            <span className="hidden md:group-hover:block text-[10px] font-black uppercase tracking-widest ml-2 whitespace-nowrap">View Item</span>
+            <ArrowUpRight size={16} className="md:min-w-[44px]" strokeWidth={3} />
           </div>
         </div>
       </div>
