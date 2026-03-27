@@ -328,7 +328,7 @@ export default function ProductDetailPage({ params }) {
             {/* DESCRIPTION */}
             <div className="space-y-3">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 border-b border-black pb-1 inline-block">Description</h3>
-              <p className="text-sm text-center md:text-left text-gray-500 leading-relaxed font-medium">
+              <p className="whitespace-pre-wrap text-sm text-center md:text-left text-gray-500 leading-relaxed font-medium">
                 {product.description}
               </p>
             </div>
