@@ -60,8 +60,8 @@ const RelatedProducts = ({ currentProduct, allProducts }) => {
   if (recommendations.length === 0) return null;
 
   return (
-    <section className="pt-24 border-t border-gray-200 mt-24 bg-transparent">
-      <div className="container mx-auto px-4 md:px-8">
+    <section className="pt-24 border-t border-gray-200 mt-12 bg-transparent">
+      <div className="container mx-auto ">
 
         {/* Header Section: Modern & Clean */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">

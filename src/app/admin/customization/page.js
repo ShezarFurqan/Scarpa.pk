@@ -41,6 +41,7 @@ export default function CollectionsManager() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(''); 
   const [isEditing, setIsEditing] = useState(null);
+  // selectedProducts ab sirf IDs ki array hogi
   const [formData, setFormData] = useState({ title: '', description: '', selectedProducts: [] });
   const [heroData, setHeroData] = useState({ badge: '', titleLine1: '', titleLine2: '', description: '', btnPrimary: '', btnSecondary: '', image: '' });
   const [storyData, setStoryData] = useState({ sectionTitle: '', sectionDescription: '', videoTitle: '', video: '', collectionLink: '' });
@@ -69,13 +70,14 @@ export default function CollectionsManager() {
     return () => unsubCol();
   }, []);
 
-  const handleSelectProduct = (product) => {
-    const exists = formData.selectedProducts.find(p => p.id === product.id);
+  // Sirf ID handle karne ke liye update kiya
+  const handleSelectProduct = (productId) => {
+    const exists = formData.selectedProducts.includes(productId);
     setFormData({
       ...formData,
       selectedProducts: exists 
-        ? formData.selectedProducts.filter(p => p.id !== product.id)
-        : [...formData.selectedProducts, product]
+        ? formData.selectedProducts.filter(id => id !== productId)
+        : [...formData.selectedProducts, productId]
     });
   };
 
@@ -164,9 +166,9 @@ export default function CollectionsManager() {
 
               <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-2 bg-black/40 rounded-xl border border-white/5 scrollbar-hide">
                 {allProducts.filter(p => p.title?.toLowerCase().includes(searchTerm.toLowerCase())).map(product => {
-                  const isSelected = formData.selectedProducts.some(p => p.id === product.id);
+                  const isSelected = formData.selectedProducts.includes(product.id);
                   return (
-                    <div key={product.id} onClick={() => handleSelectProduct(product)}
+                    <div key={product.id} onClick={() => handleSelectProduct(product.id)}
                       className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 hover:bg-white/5'}`}>
                       <img src={product.images?.[0] || product.image} className="w-10 h-10 rounded object-cover" />
                       <div className="flex-1 min-w-0">
@@ -207,11 +209,16 @@ export default function CollectionsManager() {
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
                   <div className="flex -space-x-2">
-                    {col.selectedProducts.slice(0, 4).map((p, i) => (
-                      <div key={i} className="h-7 w-7 rounded-full border border-zinc-900 bg-zinc-800 overflow-hidden ring-2 ring-zinc-950">
-                        <img className="w-full h-full object-cover" src={p.images?.[0] || p.image} alt="" />
-                      </div>
-                    ))}
+                    {col.selectedProducts.slice(0, 4).map((pId, i) => {
+                      // Yahan hum ID ke zariye latest data fetch kar rahe hain allProducts se
+                      const p = allProducts.find(item => item.id === pId);
+                      if (!p) return null;
+                      return (
+                        <div key={i} className="h-7 w-7 rounded-full border border-zinc-900 bg-zinc-800 overflow-hidden ring-2 ring-zinc-950">
+                          <img className="w-full h-full object-cover" src={p.images?.[0] || p.image} alt="" />
+                        </div>
+                      );
+                    })}
                   </div>
                   <span className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-md uppercase">{col.selectedProducts.length} Items</span>
                 </div>
@@ -295,8 +302,6 @@ export default function CollectionsManager() {
           </div>
         </div>
       </section>
-
-
     </div>
   );
 }

@@ -1,14 +1,15 @@
 'use client';
 import React, { useState, useEffect, useContext } from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion'; // Import Framer Motion
+import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
 import { ShopContext } from '../Context/ShopContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const ProductsCollection = ({ collectionName }) => {
-  const { router } = useContext(ShopContext);
+  // ShopContext se products (master list) nikaal li
+  const { router, products } = useContext(ShopContext);
   const [collectionData, setCollectionData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +41,7 @@ const ProductsCollection = ({ collectionName }) => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1, // Har product card thodi der baad ayega
+        staggerChildren: 0.1,
       },
     },
   };
@@ -63,13 +64,17 @@ const ProductsCollection = ({ collectionName }) => {
 
   if (!collectionData) return null;
 
-  const displayProducts = collectionData.selectedProducts || collectionData.products || [];
+  // --- LOGIC CHANGE START ---
+  // Collection mein saved IDs ko master 'products' array se match karke full data nikalna
+  const savedIds = collectionData.selectedProducts || [];
+  const displayProducts = products.filter(p => savedIds.includes(p.id));
+  // --- LOGIC CHANGE END ---
 
   return (
     <motion.section 
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.1 }} // 10% section dikhte hi animation start hogi
+      viewport={{ once: true, amount: 0.1 }}
       variants={containerVariants}
       className="relative w-full bg-[#edf1f5] py-20 lg:py-32 overflow-hidden"
     >
@@ -87,7 +92,7 @@ const ProductsCollection = ({ collectionName }) => {
 
       <div className="container mx-auto px-6 lg:px-0 relative z-10">
 
-        {/* Section Header Animation */}
+        {/* Section Header */}
         <motion.div 
           variants={fadeInUp}
           className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8"
@@ -108,7 +113,7 @@ const ProductsCollection = ({ collectionName }) => {
           </div>
         </motion.div>
 
-        {/* Product Grid Animation */}
+        {/* Product Grid */}
         <motion.div 
           variants={containerVariants}
           className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-x-6 sm:gap-y-12"
@@ -116,14 +121,14 @@ const ProductsCollection = ({ collectionName }) => {
           {displayProducts.length > 0 ? (
             displayProducts.map((product) => (
               <motion.div 
-                variants={fadeInUp} // Har card upar slide karega
+                variants={fadeInUp} 
                 className='pb-2'  
                 key={product.id}
               >
                 <ProductCard
                   brand={product.brand}
                   fakePrice={product.fakePrice}
-                  size={product.sizes[0]}
+                  size={product.sizes ? product.sizes[0] : ''}
                   product={product}
                   quantity={Number(product.qty)}
                   title={product.title}
@@ -142,7 +147,7 @@ const ProductsCollection = ({ collectionName }) => {
           )}
         </motion.div>
 
-        {/* Action Button Animation */}
+        {/* Action Button */}
         <motion.div 
           variants={fadeInUp}
           className="mt-24 flex justify-center"
