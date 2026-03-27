@@ -486,15 +486,34 @@ export default function ProductManagement() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Brand</label>
-                  <select
-                    value={newProduct.brand}
-                    onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
-                  >
-                    {BRAND.map(c => <option key={c} value={c} className="bg-[#0D0D0D]">{c}</option>)}
-                  </select>
+                <div className="space-y-4"> {/* Spacing badha di hai taaki input clear dikhe */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Brand</label>
+                    <select
+                      value={newProduct.brand}
+                      onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
+                    >
+                      <option value="" className="bg-[#0D0D0D]">Select Brand</option>
+                      {BRAND.map(c => (
+                        <option key={c} value={c} className="bg-[#0D0D0D]">{c}</option>
+                      ))}
+                      <option value="Other" className="bg-[#0D0D0D]"> + Add Other Brand</option>
+                    </select>
+                  </div>
+
+                  {/* Agar 'Other' select hua hai, toh ye naya input field dikhega */}
+                  {newProduct.brand === "Other" && (
+                    <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Custom Brand Name</label>
+                      <input
+                        type="text"
+                        placeholder="Enter your brand name"
+                        onChange={(e) => setNewProduct({ ...newProduct, customBrand: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-white/30"
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Condition</label>

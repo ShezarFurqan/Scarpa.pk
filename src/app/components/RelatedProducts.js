@@ -92,6 +92,7 @@ const RelatedProducts = ({ currentProduct, allProducts }) => {
                 title={product.title}
                 price={product.price}
                 fakePrice={product.fakePrice}
+                quantity={product.qty}
                 size={product.sizes[0]}
                 image={product.images?.[0] || product.image}
                 className="bg-white rounded-[2.5rem] shadow-sm border border-white hover:shadow-[0_30px_60px_-15px_rgba(1,69,242,0.1)] transition-all duration-500"

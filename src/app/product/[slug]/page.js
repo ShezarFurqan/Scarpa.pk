@@ -84,19 +84,32 @@ export default function ProductDetailPage({ params }) {
 
   const handleAddReview = async (e) => {
     e.preventDefault();
-    if (!token) { alert("Please login to submit review"); return; }
-    if (!newReview.name || !newReview.comment) return;
+
+    // Basic validation to ensure all fields are filled
+    if (!newReview.name || !newReview.email || !newReview.comment) {
+      alert("Please fill in all fields (Name, Email, and Message) to submit a review.");
+      return;
+    }
+
     try {
       await addDoc(collection(db, "productReviews"), {
         productId: productId,
         user: newReview.name,
+        email: newReview.email, // Added email field to be saved in Firestore
         rating: newReview.rating,
         comment: newReview.comment,
         createdAt: serverTimestamp(),
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
       });
-      setNewReview({ name: "", rating: 5, comment: "" });
-    } catch (err) { console.error("Error adding review: ", err); }
+
+      // Reset the state, including the new email field
+      setNewReview({ name: "", email: "", rating: 5, comment: "" });
+      alert("Thank you for your review!");
+
+    } catch (err) {
+      console.error("Error adding review: ", err);
+      alert("Something went wrong. Please try again.");
+    }
   };
 
   if (!product) {
@@ -428,12 +441,15 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}
         {/* --- REVIEWS SECTION --- */}
         <div className="mt-24 border-t border-gray-100 pt-12 md:pt-20 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+
+            {/* Left Column: Review List */}
             <div className="lg:col-span-7 space-y-8">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-4 mb-6 md:mb-8">
                 <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-gray-900 italic break-words">
                   Feedback
                 </h2>
-                <span className="text-xs font-black text-gray-300 uppercase tracking-widest">{reviews.length} Verified Reviews</span>
+                {/* Changed "Verified Reviews" to "Customer Reviews" since login isn't required */}
+                <span className="text-xs font-black text-gray-300 uppercase tracking-widest">{reviews.length} Customer Reviews</span>
               </div>
 
               <div className="space-y-6">
@@ -463,57 +479,61 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}
               </div>
             </div>
 
+            {/* Right Column: Add Review Form (No Login Required) */}
             <div className="lg:col-span-5 w-full">
               <div className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-2xl shadow-black/5 border border-gray-50 sticky top-24">
-                {token ? (
-                  <div className="space-y-6">
-                    <div className="mb-4">
-                      <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-gray-900 leading-none">Drop a Review</h3>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2">Verified Purchase Only</p>
+
+                <div className="space-y-6">
+                  <div className="mb-4">
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-gray-900 leading-none">Drop a Review</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2">We'd love to hear from you</p>
+                  </div>
+
+                  <form onSubmit={handleAddReview} className="space-y-5 w-full">
+                    {/* 1. Rating */}
+                    <div className="flex justify-center bg-gray-50 py-6 rounded-2xl border border-gray-100">
+                      <StarRating rating={newReview.rating} size={28} interactive={true} />
                     </div>
 
-                    <form onSubmit={handleAddReview} className="space-y-5 w-full">
-                      <div className="flex justify-center bg-gray-50 py-6 rounded-2xl border border-gray-100">
-                        <StarRating rating={newReview.rating} size={28} interactive={true} />
-                      </div>
+                    {/* 2. Display Name */}
+                    <input
+                      type="text"
+                      placeholder="DISPLAY NAME"
+                      required
+                      value={newReview.name || ''}
+                      onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+                      className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                    />
 
-                      <input
-                        type="text"
-                        placeholder="YOUR NAME"
-                        value={newReview.name}
-                        onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
-                        className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                      />
+                    {/* 3. Email Address (New Field) */}
+                    <input
+                      type="email"
+                      placeholder="YOUR EMAIL"
+                      required
+                      value={newReview.email || ''}
+                      onChange={(e) => setNewReview({ ...newReview, email: e.target.value })}
+                      className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                    />
 
-                      <textarea
-                        placeholder="WHAT DID YOU THINK?"
-                        rows={4}
-                        value={newReview.comment}
-                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                        className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-bold outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none"
-                      />
+                    {/* 4. Message / Comment */}
+                    <textarea
+                      placeholder="WHAT DID YOU THINK?"
+                      rows={4}
+                      required
+                      value={newReview.comment || ''}
+                      onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                      className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-bold outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none"
+                    />
 
-                      <button type="submit" className="w-full bg-black text-white py-4 md:py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:scale-[1.02] transition-all active:scale-95 shadow-lg shadow-black/10">
-                        Submit Feedback
-                      </button>
-                    </form>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 space-y-6">
-                    <h3 className="text-xl font-black uppercase tracking-tighter text-gray-900">Login to Review</h3>
-                    <button onClick={() => {
-                      if (token) {
-                        router.push("/profile");
-                      } else {
-                        setIsLoginOpen(true);
-                      }
-                    }} className="inline-flex items-center justify-center bg-black text-white py-4 px-8 rounded-full font-black uppercase tracking-widest text-[10px] hover:shadow-xl transition-all">
-                      Login <ChevronRight size={14} className="ml-2" />
+                    <button type="submit" className="w-full bg-black text-white py-4 md:py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:scale-[1.02] transition-all active:scale-95 shadow-lg shadow-black/10">
+                      Submit Feedback
                     </button>
-                  </div>
-                )}
+                  </form>
+                </div>
+
               </div>
             </div>
+
           </div>
         </div>
       </div>
