@@ -15,6 +15,7 @@ import {
 import LoginDrawer from "../../components/login";
 import RelatedProducts from '@/app/components/RelatedProducts';
 import ProductChat from '@/app/components/ProductChat';
+import Image from 'next/image';
 
 export default function ProductDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -134,11 +135,15 @@ export default function ProductDetailPage({ params }) {
                   onMouseLeave={() => setZoom({ ...zoom, show: false })}
                   className="relative aspect-[4/5] rounded-[2rem] overflow-hidden cursor-crosshair bg-[#f8f8f8]"
                 >
-                  <img
+                  <Image
                     src={product.images ? product.images[selectedImage] : '/placeholder.png'}
                     alt={product.title}
-                    className={`w-full h-full object-contain mix-blend-multiply transition-opacity duration-300 ${zoom.show ? 'opacity-0' : 'opacity-100'}`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className={`object-contain transition-opacity duration-300 ${zoom.show ? 'opacity-0' : 'opacity-100'}`}
+                    priority={selectedImage === 0} // first image fast load ke liye
                   />
+
                   {zoom.show && (
                     <div
                       className="absolute inset-0 pointer-events-none bg-white hidden md:block"
@@ -165,11 +170,17 @@ export default function ProductDetailPage({ params }) {
                   key={idx}
                   onClick={() => setSelectedImage(idx)}
                   className={`w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-200 
-                    ${selectedImage === idx
+      ${selectedImage === idx
                       ? 'border-gray-900 scale-95 opacity-100 shadow-md'
                       : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
-                  <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                  <Image
+                    src={img}
+                    alt={`Thumbnail ${idx + 1}`}
+                    width={80}
+                    height={80}
+                    className="object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -182,7 +193,7 @@ export default function ProductDetailPage({ params }) {
               {/* 1. CATEGORY & BESTSELLER ROW */}
               <div className="flex items-center justify-between">
                 {/* Blue Div for Category */}
-                <div onClick={()=>{router.push(`/shop/category/${product.category}`)}} className="px-2.5 py-1 cursor-pointer bg-[#1B45F2] text-[#EDF1F5] text-[8px] md:text-xs font-black uppercase tracking-[0.15em] rounded-md ">
+                <div onClick={() => { router.push(`/shop/category/${product.category}`) }} className="px-2.5 py-1 cursor-pointer bg-[#1B45F2] text-[#EDF1F5] text-[8px] md:text-xs font-black uppercase tracking-[0.15em] rounded-md ">
                   {product.category && product.category !== "none" ? product.category : "Sneakers"}
                 </div>
 
@@ -224,7 +235,7 @@ export default function ProductDetailPage({ params }) {
 
                 {/* Styled Condition Tag */}
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 bg-gray-100 px-2 py-0.5 rounded-sm border border-gray-200">
-                  Condition: {product.condition || 'New'}
+                  Condition: {product.condition || ''}
                 </span>
               </div>
             </div>

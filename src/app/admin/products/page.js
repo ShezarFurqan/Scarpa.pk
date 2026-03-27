@@ -13,7 +13,7 @@ import DeleteConfirmationModal from '@/app/components/DeleteConfirmationModal'
 
 // --- CONSTANTS FOR DROPDOWNS ---
 const CATEGORIES = ['None', 'Sneakers', 'Running Shoes', 'Casual Shoes', 'Sports Shoes', 'Premium Collection']
-const BRAND = ['None', 'Nike', 'Hoka',"Asics","Fila","Heydude", "AllBirds","Kalenji","EasySpirit","Scarpa", "Colombia","Reebok","OnCloud","Altra", "UnderArmour","Qixing",'Puma', 'Adidas', 'New Balance', 'Brooks', 'Sketchers']
+const BRAND = ['None', 'Nike', 'Hoka', "Asics", "Fila", "Heydude", "AllBirds", "Kalenji", "EasySpirit", "Scarpa", "Colombia", "Reebok", "OnCloud", "Altra", "UnderArmour", "Qixing", 'Puma', 'Adidas', 'New Balance', 'Brooks', 'Sketchers']
 const CONDITIONS = ['Premium', 'Excellent', 'Very Good'];
 const PRODUCT_STATUSES = [
   'None',
@@ -48,7 +48,14 @@ export const uploadToCloudinary = async (file) => {
 
   if (!res.ok) throw new Error("Cloudinary upload failed")
   const data = await res.json()
-  return data.secure_url
+
+  // 🔥 optimized URL create karo
+  const optimizedUrl = data.secure_url.replace(
+    "/upload/",
+    "/upload/f_auto,q_auto,w_800/"
+  )
+
+  return optimizedUrl
 }
 
 export default function ProductManagement() {
