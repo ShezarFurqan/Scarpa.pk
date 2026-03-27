@@ -16,9 +16,18 @@ const ProductCard = ({
   quantity,
 }) => {
   const { router } = useContext(ShopContext);
+  const slugify = (str) =>
+  str
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")        
+    .replace(/[^\w-]+/g, "")     
+    .replace(/--+/g, "-");       
   return (
     <div
-      onClick={() => router.push(`/product/${productId}`)}
+      onClick={() =>
+        router.push(`/product/${slugify(title)}-${productId}`)
+      }
       className="group relative w-full bg-white rounded-[20px] md:rounded-[32px] overflow-hidden border border-gray-100 hover:border-[#0145f2]/20 transition-all duration-500 hover:shadow-[0_30px_60px_-20px_rgba(0,0,0,0.1)] cursor-pointer flex flex-col h-full"
     >
       {/* --- IMAGE SECTION --- */}
