@@ -12,7 +12,7 @@ const SizeSelector = () => {
     { id: "uk7eu41", label: "41", uk: "UK 7" },
     { id: "uk8eu42", label: "42", uk: "UK 8" },
     { id: "uk9eu43", label: "43", uk: "UK 9" },
-    { id: "uk9.5eu44", label: "44", uk: "UK 9.5" },
+    { id: "uk9.5eu44", label: "44", uk: "UK 10" },
   ];
 
   // Animations
