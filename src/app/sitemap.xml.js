@@ -1,15 +1,25 @@
-Your Sitemap does not contain any URLs. Please validate and resubmit your Sitemap// app/sitemap.xml.js
 import { db } from "@/app/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
+// Simple slugify function
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')      // spaces to dash
+    .replace(/[^\w\-]+/g, '')  // remove special chars
+    .replace(/\-\-+/g, '-');   // remove double dashes
+}
+
 export async function GET() {
   const productsSnap = await getDocs(collection(db, "products"));
-  const products = productsSnap.docs.map(doc => doc.data());
+  const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
   const urls = [
     { loc: "https://scarpa.pk/", priority: 1.0 },
     ...products.map(p => ({
-      loc: `https://scarpa.pk/product/${p.slug}-${p.id}`,
+      loc: `https://scarpa.pk/product/${slugify(p.title)}-${p.id}`,
       priority: 0.8
     }))
   ];
