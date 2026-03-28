@@ -16,13 +16,7 @@ const ProductCard = ({
   quantity,
 }) => {
   const { router } = useContext(ShopContext);
-  const slugify = (str) =>
-  str
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")        
-    .replace(/[^\w-]+/g, "")     
-    .replace(/--+/g, "-");       
+         
   return (
     <div
       onClick={() =>

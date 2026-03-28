@@ -62,6 +62,14 @@ export default function Navbar() {
     }
   };
 
+  const slugify = (str) =>
+  str
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")        
+    .replace(/[^\w-]+/g, "")     
+    .replace(/--+/g, "-");
+
   if (pathname.includes("/admin")) return null;
 
   return (
@@ -109,7 +117,7 @@ export default function Navbar() {
                 {searchResults.length > 0 ? (
                   <div className="p-3">
                     {searchResults.map((item) => (
-                      <div key={item.id} onClick={() => { router.push(`/product/${item.id}`); setIsSearchFocused(false); setSearchQuery(""); }} className="flex items-center gap-4 p-3 hover:bg-blue-50/50 rounded-2xl cursor-pointer transition-colors group">
+                      <div key={item.id} onClick={() => { router.push(`/product/${slugify(item.title)}-${item.id}`); setIsSearchFocused(false); setSearchQuery(""); }} className="flex items-center gap-4 p-3 hover:bg-blue-50/50 rounded-2xl cursor-pointer transition-colors group">
                         <img src={item.images[0]} alt={item.title} className="w-12 h-12 object-cover rounded-xl bg-gray-100" />
                         <div className="flex-1">
                           <h4 className="text-[13px] font-black text-gray-900 leading-tight">{item.title}</h4>
