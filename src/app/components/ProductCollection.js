@@ -47,7 +47,7 @@ const ProductsCollection = ({ collectionName }) => {
             // IDs ka order maintain karne ke liye (optional but good)
             const sortedProducts = productIds
               .map(id => fetchedProducts.find(p => p.id === id))
-              .filter(p => p !== undefined);
+              .filter(p => p !== undefined).slice(0, 4);
 
             setDisplayProducts(sortedProducts);
           }
