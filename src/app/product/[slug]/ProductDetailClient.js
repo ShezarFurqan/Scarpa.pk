@@ -30,6 +30,8 @@ export default function ProductDetailClient({ product }) {
     const [reviews, setReviews] = useState([]);
     const [error, setError] = useState("");
     const [open, setOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    
     const [newReview, setNewReview] = useState({ name: "", email: "", rating: 5, comment: "" });
 
     const imgRef = useRef(null);
@@ -125,6 +127,10 @@ export default function ProductDetailClient({ product }) {
             ))}
         </div>
     );
+
+    useEffect(() => {
+        console.log(open)
+    }, [open])
 
     return (
         <div className="min-h-screen text-gray-800 font-sans selection:bg-gray-200 selection:text-black overflow-x-hidden">
@@ -252,7 +258,7 @@ export default function ProductDetailClient({ product }) {
                                     </button>
                                 </>
                             )}
-                            <button onClick={() => setOpen(true)} className="w-full py-2 sm:py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-black group">
+                            <button onClick={() => { setOpen(!open) }} className="w-full py-2 sm:py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-black group">
                                 <HelpCircle size={16} className="group-hover:rotate-12 transition-transform" /> Have a question? <span className="underline underline-offset-2">Ask Anything</span>
                             </button>
                         </div>
@@ -373,7 +379,7 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                 </div>
             </div>
             <LoginDrawer isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-            <ProductChat product={product} open={open} setOpen={setOpen} />
+            <ProductChat product={product} isOpen={isOpen} setIsOpen={setIsOpen} open={open} setOpen={setOpen} />
         </div>
     )
 }

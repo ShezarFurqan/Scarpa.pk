@@ -1,230 +1,159 @@
-'use client'
-import React, { useState, useMemo, useContext, useEffect } from 'react'
-import { Search, ChevronDown, Loader2, X, Package, Filter } from 'lucide-react'
-import ProductCard from '@/app/components/ProductCard';
-import { ShopContext } from '@/app/Context/ShopContext';
-import { db } from '@/app/firebase';
-import { collection, getDocs } from 'firebase/firestore';
-import { useParams } from 'next/navigation';
+import { db } from "@/app/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import CollectionClient from "./CollectionClient";
 
-export default function CollectionPage({ params }) {
-  // Params se type aur slug dono nikaal rahe hain
-  const { type, slug } = useParams();
+/**
+ * 1. HELPER: URL slug matching ke liye
+ */
+const formatForMatch = (str) => str?.toLowerCase().replace(/\s+/g, '') || "";
 
-  const [sortOpen, setSortOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("featured");
-  const [priceRange, setPriceRange] = useState(100000);
-  const [dbCollection, setDbCollection] = useState(null);
-  const [loading, setLoading] = useState(true);
+/**
+ * 2. SERVER-SIDE SEO DATA FETCHING
+ */
+async function getCollectionSEO(type, slug) {
+  let title = slug.replace(/-/g, ' ');
+  let description = `Explore our premium ${title} collection at Scarpa.pk. Buy original, high-quality footwear and sneakers in Pakistan at the best prices.`;
 
-  const { products } = useContext(ShopContext);
+  if (type === 'custom' || type === 'collection') {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'Productcollections'));
+      const formattedSlug = formatForMatch(slug);
+      const matchedDoc = querySnapshot.docs.find(doc => formatForMatch(doc.data().title) === formattedSlug);
 
-  const formatForMatch = (str) => str?.toLowerCase().replace(/\s+/g, '') || "";
-
-  // 1. FETCH CUSTOM COLLECTIONS
-  useEffect(() => {
-    const fetchAndMatch = async () => {
-      try {
-        setLoading(true);
-        if (type === 'custom' || type === 'collection') {
-          const querySnapshot = await getDocs(collection(db, 'Productcollections'));
-          const formattedSlug = formatForMatch(slug);
-
-          const matchedDoc = querySnapshot.docs.find(doc => {
-            const title = doc.data().title;
-            return formatForMatch(title) === formattedSlug;
-          });
-
-          if (matchedDoc) setDbCollection(matchedDoc.data());
-        }
-      } catch (e) {
-        console.error("Error fetching collections:", e);
-      } finally {
-        setLoading(false);
+      if (matchedDoc) {
+        const data = matchedDoc.data();
+        title = data.title;
+        if (data.description) description = data.description;
       }
-    };
-
-    fetchAndMatch();
-  }, [slug, type]);
-
-  // 2. DYNAMIC FILTERING LOGIC
-  const filteredProducts = useMemo(() => {
-    let result = [];
-    const formattedSlug = formatForMatch(slug);
-    const formattedType = type?.toLowerCase();
-
-    // PEHLE: Agar Firebase collection mili hai, toh IDs se context products fetch karo
-    if (dbCollection && products) {
-      // Hum global products list mein se wo products nikaal rahe hain jinki ID collection ke selectedProducts array mein hai
-      result = products.filter(p => dbCollection.selectedProducts?.includes(p.id));
+    } catch (e) {
+      console.error("SEO Fetch Error:", e);
     }
-    // Warna context ke products par dynamic filter lagayein
-    else if (products) {
-      result = products.filter((product) => {
-        if (formattedSlug === "all" || formattedSlug === "allproducts") return true;
+  }
 
-        switch (formattedType) {
-          case 'category':
-            return formatForMatch(product.category) === formattedSlug;
-          case 'brand':
-            return formatForMatch(product.brand) === formattedSlug;
-          case 'condition':
-            return formatForMatch(product.condition) === formattedSlug;
-          case 'size':
-            return product.sizes?.some(s => formatForMatch(s).replace("/", "") === formattedSlug);
-          default:
-            return formatForMatch(product.category) === formattedSlug || formatForMatch(product.brand) === formattedSlug;
+  // Title Case Formatting (e.g. "running shoes" -> "Running Shoes")
+  const capitalizedTitle = title.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return { title: capitalizedTitle, description };
+}
+
+/**
+ * 3. DYNAMIC METADATA (Google, Social Media, Robots)
+ */
+export async function generateMetadata({ params }) {
+  const { type, slug } = await params;
+  const { title, description } = await getCollectionSEO(type, slug);
+
+  return {
+    title: `${title} - Buy Online in Pakistan | Scarpa.pk`,
+    description: description,
+    metadataBase: new URL('https://scarpa.pk'),
+    alternates: {
+      canonical: `/shop/${type}/${slug}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+      },
+    },
+    keywords: [title, `${title} shoes Pakistan`, "buy sneakers online", "Scarpa.pk collections", "premium footwear"],
+    openGraph: {
+      title: `${title} Collection | Scarpa.pk`,
+      description: description,
+      url: `/shop/${type}/${slug}`,
+      siteName: "Scarpa Pakistan",
+      images: [
+        {
+          url: '/images/shop-og-banner.jpg', // Make sure this image exists in your public/images folder
+          width: 1200,
+          height: 630,
+          alt: `Shop ${title} at Scarpa.pk`,
+        },
+      ],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} Collection | Scarpa.pk`,
+      description: description,
+    },
+  };
+}
+
+/**
+ * 4. MAIN SERVER COMPONENT (Schemas + Client Component)
+ */
+export default async function Page({ params }) {
+  const { type, slug } = await params;
+  const { title, description } = await getCollectionSEO(type, slug);
+
+  // Schema 1: Collection Page
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${title} Collection`,
+    description: description,
+    url: `https://scarpa.pk/shop/${type}/${slug}`,
+  };
+
+  // Schema 2: Breadcrumbs
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://scarpa.pk' },
+      { '@type': 'ListItem', position: 2, name: type.toUpperCase(), item: `https://scarpa.pk/shop/${type}` },
+      { '@type': 'ListItem', position: 3, name: title, item: `https://scarpa.pk/shop/${type}/${slug}` }
+    ]
+  };
+
+  // Schema 3: FAQ (CTR Booster)
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": `Where to buy original ${title} shoes in Pakistan?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `You can buy authentic and premium ${title} shoes online at Scarpa.pk with fast delivery across Pakistan.`
         }
-      });
-    }
+      },
+      {
+        "@type": "Question",
+        "name": `Are the ${title} sneakers at Scarpa.pk authentic?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `Yes, all footwear at Scarpa.pk, including the ${title} collection, is guaranteed 100% original and high-quality.`
+        }
+      }
+    ]
+  };
 
-    // Search Query Filter
-    if (searchQuery) {
-      result = result.filter((p) =>
-        p.title?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Price Filter
-    result = result.filter((p) => Number(p.price) <= priceRange);
-
-    // Sorting
-    const sortedResult = [...result];
-    if (sortBy === "low") sortedResult.sort((a, b) => Number(a.price) - Number(b.price));
-    if (sortBy === "high") sortedResult.sort((a, b) => Number(b.price) - Number(a.price));
-
-    return sortedResult;
-  }, [products, dbCollection, slug, type, searchQuery, sortBy, priceRange]);
-
-  if (loading) return (
-    <div className="min-h-screen bg-[#edf1f5] flex flex-col items-center justify-center">
-      <Loader2 className="animate-spin text-[#0145f2]" size={40} strokeWidth={3} />
-      <p className="mt-4 text-[10px] font-black uppercase tracking-[0.4em] text-[#0145f2] animate-pulse">Filtering Inventory...</p>
-    </div>
-  );
+  // Schema 4: ItemList (Rich Results for Product Listings)
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": `${title} Collection`,
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": `${title} Premium Selection 1` },
+      { "@type": "ListItem", "position": 2, "name": `${title} Exclusive Item 2` }
+    ]
+  };
 
   return (
-    <div className="min-h-screen bg-[#edf1f5] text-gray-900 pt-32 pb-28">
-      <div className="max-w-[1400px] mx-auto px-6">
+    <>
+      {/* Injecting All Schemas */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
 
-        {/* --- HEADER SECTION --- */}
-        <div className="mb-16 border-b-4 border-[#0145f2]/10 pb-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 bg-[#0145f2] text-white text-[9px] font-black uppercase tracking-widest rounded-full">
-                  {type}
-                </span>
-              </div>
-              <h1 className="text-5xl md:text-8xl font-[1000] uppercase tracking-tighter leading-[0.85] text-gray-900">
-                {dbCollection ? dbCollection.title : slug.replace(/-/g, ' ')}
-                <span className="text-[#0145f2] italic font-black">.</span>
-              </h1>
-              <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] mt-6">
-                Browsing {type} results for "{slug}"
-              </p>
-            </div>
-            <div className="bg-white px-6 py-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Available Units</p>
-                <p className="text-2xl font-[1000] text-[#0145f2] leading-none mt-1">{filteredProducts.length}</p>
-              </div>
-              <div className="w-10 h-10 bg-[#edf1f5] rounded-2xl flex items-center justify-center">
-                <Package className="text-[#0145f2]" size={20} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* --- TOOLBAR --- */}
-        <div className="flex flex-col lg:flex-row gap-6 mb-12 items-center justify-between">
-          <div className="w-full lg:w-1/3 relative group">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0145f2] transition-colors" size={20} />
-            <input
-              type="text"
-              placeholder={`SEARCH IN ${slug.toUpperCase()}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border-2 border-transparent rounded-[2rem] py-5 pl-16 pr-8 text-[11px] font-bold uppercase tracking-widest focus:outline-none focus:border-[#0145f2] shadow-sm transition-all placeholder:text-gray-300"
-            />
-          </div>
-
-          <div className="w-full lg:w-auto flex flex-wrap gap-4 items-center">
-            <div className="bg-white rounded-[2rem] px-8 py-4 shadow-sm border border-gray-50 flex flex-col gap-2 min-w-[260px]">
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] font-black uppercase tracking-widest text-[#0145f2]">Price Ceiling</span>
-                <span className="text-sm font-black text-gray-900">Rs. {priceRange.toLocaleString()}</span>
-              </div>
-              <input
-                type="range" min="0" max="100000" step="1000"
-                value={priceRange}
-                onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="accent-[#0145f2] cursor-pointer h-1.5 w-full bg-[#edf1f5] rounded-lg appearance-none"
-              />
-            </div>
-
-            <div className="relative">
-              <button
-                onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-6 bg-white text-gray-900 border border-gray-200 rounded-[2rem] px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] shadow-sm hover:border-[#0145f2] transition-all"
-              >
-                Sort: {sortBy === "featured" ? "Featured" : sortBy === "low" ? "Min Price" : "Max Price"}
-                <ChevronDown size={16} className={`text-[#0145f2] transition-transform ${sortOpen ? 'rotate-180' : ''}`} strokeWidth={3} />
-              </button>
-
-              {sortOpen && (
-                <div className="absolute right-0 top-full mt-4 w-64 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                  {[
-                    { label: "Featured Gear", value: "featured" },
-                    { label: "Price: Low to High", value: "low" },
-                    { label: "Price: High to Low", value: "high" }
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => { setSortBy(option.value); setSortOpen(false); }}
-                      className={`w-full text-left px-8 py-5 text-[10px] font-black uppercase tracking-widest transition-colors border-b border-gray-50 last:border-none ${sortBy === option.value ? 'bg-[#edf1f5] text-[#0145f2]' : 'text-gray-500 hover:bg-gray-50'}`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* --- GRID --- */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                size={product.sizes?.[0]}
-                key={product.id}
-                quantity={Number(product.qty)}
-                fakePrice={product.fakePrice}
-                productId={product.id}
-                title={product.title}
-                price={product.price}
-                image={product?.images?.[0] || product.image}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="py-32 text-center bg-white rounded-[4rem] border-4 border-dashed border-gray-200">
-            <div className="w-20 h-20 bg-[#edf1f5] rounded-full flex items-center justify-center mx-auto mb-6">
-              <Filter className="text-gray-300" size={32} />
-            </div>
-            <p className="text-gray-400 font-black text-xs uppercase tracking-[0.4em]">No matching gear found.</p>
-            <button
-              onClick={() => { setPriceRange(100000); setSearchQuery("") }}
-              className="mt-6 text-[10px] font-black uppercase tracking-widest text-[#0145f2] hover:underline underline-offset-8"
-            >
-              Clear All Filters
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+      {/* Rendering the Client Component for UI and Interaction */}
+      <CollectionClient type={type} slug={slug} title={title} />
+    </>
+  );
 }

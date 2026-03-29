@@ -10,8 +10,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { Send, MessageCircle, X, User } from 'lucide-react';
 import GuestModal from './GuestModel';
 
-const ProductChat = ({ product, open, setOpen }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ProductChat = ({ product, open, setOpen, isOpen, setIsOpen }) => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [currentUser, setCurrentUser] = useState(null);

@@ -2,17 +2,20 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion"; // Framer Motion import
+import { motion } from "framer-motion";
 
 const SizeSelector = () => {
   const router = useRouter();
 
   // Added UK sizes for a more detailed, premium feel
+  // Fixed the label for uk6eu40 to '40'
   const sizes = [
+    { id: "uk5eu39", label: "39", uk: "UK 5" },
+    { id: "uk6eu40", label: "40", uk: "UK 6" },
     { id: "uk7eu41", label: "41", uk: "UK 7" },
     { id: "uk8eu42", label: "42", uk: "UK 8" },
     { id: "uk9eu43", label: "43", uk: "UK 9" },
-    { id: "uk9.5eu44", label: "44", uk: "UK 10" },
+    { id: "uk10eu44", label: "44", uk: "UK 10" },
   ];
 
   // Animations
@@ -67,10 +70,10 @@ const SizeSelector = () => {
           </p>
         </motion.div>
 
-        {/* Sizes Grid: 2x2 on Mobile, 1x4 on Desktop */}
+        {/* Sizes Grid: 2 cols mobile, 3 cols tablet, 6 cols desktop */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-lg sm:max-w-3xl lg:max-w-4xl mx-auto px-6 pb-12"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 lg:gap-8 max-w-lg md:max-w-3xl lg:max-w-6xl mx-auto px-6 pb-12"
         >
           {sizes.map((size) => (
             <motion.button
@@ -88,7 +91,7 @@ const SizeSelector = () => {
                 <span className="text-[10px] sm:text-xs font-bold text-gray-400 group-hover:text-blue-100 transition-colors tracking-widest uppercase">
                   EU Size
                 </span>
-                <span className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#1a1a1a] group-hover:text-white transition-colors leading-none tracking-tighter">
+                <span className="text-4xl sm:text-5xl lg:text-5xl font-black text-[#1a1a1a] group-hover:text-white transition-colors leading-none tracking-tighter">
                   {size.label}
                 </span>
                 <span className="text-[10px] sm:text-xs font-semibold text-[#0145f2] group-hover:text-blue-200 transition-colors tracking-wide bg-[#0145f2]/10 group-hover:bg-transparent px-2 py-0.5 rounded-full">

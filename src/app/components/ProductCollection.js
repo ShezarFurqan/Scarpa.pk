@@ -62,12 +62,6 @@ const ProductsCollection = ({ collectionName }) => {
     if (collectionName) fetchCollectionAndProducts();
   }, [collectionName]);
 
-
-  useEffect(()=>{
-    console.log("load tu hua hai")
-    console.log(displayProducts)
-  },[displayProducts])
-
   // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
