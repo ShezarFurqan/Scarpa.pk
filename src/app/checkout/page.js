@@ -93,16 +93,16 @@ export default function CheckoutPage() {
         createdAt: serverTimestamp(),
         date: new Date().toLocaleDateString('en-PK')
       };
-      
+
       const docRef = await addDoc(collection(db, "orders"), orderData);
-      
+
       // PRODUCT QUANTITY UPDATE LOGIC
       const updatePromises = cart.map(item => {
         if (item.id && item.id !== 'unknown') {
           const productRef = doc(db, "products", item.id);
           return updateDoc(productRef, {
             // Agar aapke DB me field ka naam stock hai, toh 'quantity' ki jagah 'stock' likhein
-            qty: increment(-item.quantity) 
+            qty: increment(-item.quantity)
           });
         }
         return Promise.resolve();
@@ -126,6 +126,12 @@ export default function CheckoutPage() {
 
   // --- SUCCESS VIEW ---
   if (isSuccess) {
+    if (typeof window !== "undefined" && window.fbq) {
+      window.fbq('track', 'Purchase', {
+        value: totalAmount,
+        currency: 'PKR'
+      });
+    }
     return (
       <div className="min-h-screen bg-[#edf1f5] text-gray-900 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-28 h-28 bg-white text-[#0145f2] rounded-[2.5rem] shadow-xl shadow-[#0145f2]/10 flex items-center justify-center mb-8 animate-bounce">
