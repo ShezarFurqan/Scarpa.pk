@@ -31,7 +31,7 @@ export default function ProductDetailClient({ product }) {
     const [error, setError] = useState("");
     const [open, setOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    
+
     const [newReview, setNewReview] = useState({ name: "", email: "", rating: 5, comment: "" });
 
     const imgRef = useRef(null);
@@ -74,6 +74,12 @@ export default function ProductDetailClient({ product }) {
         }
         setError("");
         addToCart(product, quantity, selectedSize);
+        if (typeof window !== "undefined" && window.fbq) {
+            window.fbq('track', 'AddToCart', {
+                value: product.price,
+                currency: 'PKR'
+            });
+        }
     };
 
     const handleBuyItNow = () => {

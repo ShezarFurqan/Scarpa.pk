@@ -10,6 +10,14 @@ async function getProduct(slug) {
   return productSnap.exists() ? { ...productSnap.data(), id: productId } : null;
 }
 
+if (typeof window !== "undefined" && window.fbq) {
+  window.fbq('track', 'ViewContent', {
+    content_name: product.name,
+    value: product.price,
+    currency: 'PKR'
+  });
+}
+
 // 2. Ultimate Metadata (Google + Social Media + Twitter)
 export async function generateMetadata({ params }) {
   const { slug } = await params; // Next.js 15+ standard
