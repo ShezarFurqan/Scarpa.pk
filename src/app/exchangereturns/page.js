@@ -65,7 +65,7 @@ const ReturnPolicy = () => {
                 <div className="p-6 bg-white border-l-4 border-[#0145f2] rounded-r-2xl shadow-sm">
                   <h4 className="text-[#0145f2] font-black uppercase text-xs mb-2 tracking-widest">Step 1: Contact Us</h4>
                   <p className="text-gray-600 text-sm font-medium leading-relaxed">
-                    WhatsApp us at <span className="text-gray-900 font-black">+92-XXX-XXXXXXX</span> within 3 days for exchanges (size issues) or 48 hours for returns (damaged items) with your Order ID and photos of the item.
+                    WhatsApp us at <span className="text-gray-900 font-black">+92-311-2632505</span> within 3 days for exchanges (size issues) or 48 hours for returns (damaged items) with your Order ID and photos of the item.
                   </p>
                 </div>
                 <div className="p-6 bg-white border-l-4 border-gray-200 rounded-r-2xl shadow-sm">
@@ -124,7 +124,7 @@ const ReturnPolicy = () => {
                 </div>
                 <div>
                   <p className="text-[10px] uppercase font-black text-gray-400">Need Help?</p>
-                  <p className="text-xs font-black text-gray-900 tracking-tighter">Support@yourbrand.pk</p>
+                  <p className="text-xs font-black text-gray-900 tracking-tighter">rockclimb.rc@gmail.com</p>
                 </div>
               </div>
             </div>

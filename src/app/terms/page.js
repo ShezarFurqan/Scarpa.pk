@@ -98,7 +98,7 @@ const TermsOfService = () => {
                 <h2 className="text-xl font-black uppercase tracking-tight">05. Limitation of Liability</h2>
               </div>
               <p className="text-gray-600 font-medium text-sm leading-relaxed pl-12 border-l-2 border-rose-100">
-                In no case shall Rock Climb, our directors, officers, employees, affiliates, agents, contractors, or interns be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, or consequential damages of any kind.
+                In no case shall Scarpa, our directors, officers, employees, affiliates, agents, contractors, or interns be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, or consequential damages of any kind.
               </p>
             </div>
 
@@ -145,7 +145,7 @@ const TermsOfService = () => {
               <div className="p-6 rounded-2xl border border-[#0145f2]/10 bg-white shadow-sm">
                 <p className="text-xs text-[#0145f2] font-black uppercase tracking-widest mb-2">Questions?</p>
                 <p className="text-sm font-medium text-gray-600">
-                  If you have queries regarding the Terms of Service, please contact us at <span className="text-[#0145f2] font-black underline decoration-[#0145f2]/20 underline-offset-4 cursor-pointer">legal@rockclimb.pk</span>
+                  If you have queries regarding the Terms of Service, please contact us at <span className="text-[#0145f2] font-black underline decoration-[#0145f2]/20 underline-offset-4 cursor-pointer">rockclimb.rc@gmail.com</span>
                 </p>
               </div>
 
@@ -157,7 +157,7 @@ const TermsOfService = () => {
         {/* Footer Accent */}
         <div className="mt-24 py-12 border-t border-gray-200 text-center">
           <p className="text-[10px] uppercase tracking-[0.8em] text-gray-400 font-black italic">
-            Terms of Service © {new Date().getFullYear()} ROCK CLIMB
+            Terms of Service © {new Date().getFullYear()} Scarpa
           </p>
         </div>
 

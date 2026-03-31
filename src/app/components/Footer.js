@@ -70,8 +70,8 @@ export default function Footer() {
 
             <div className="flex items-center gap-3">
               {[
-                { Icon: Facebook, link: "#" },
-                { Icon: Instagram, link: "https://www.instagram.com/rc_shoes.pk/" },
+                { Icon: Facebook, link: "https://www.facebook.com/profile.php?id=61586042726467" },
+                { Icon: Instagram, link: "https://www.instagram.com/scarpa.pk_/" },
               ].map((social, i) => (
                 <a 
                   key={i} 

@@ -289,8 +289,8 @@ export default function Navbar() {
 
                 <div className="mt-auto pt-8 border-t border-gray-200">
                   <div className="flex gap-4 mb-6">
-                    <Instagram size={22} className="text-gray-400 hover:text-[#0145f2] cursor-pointer transition-colors" />
-                    <Facebook size={22} className="text-gray-400 hover:text-[#0145f2] cursor-pointer transition-colors" />
+                    <Instagram onClick={()=>{router.push('https://www.instagram.com/scarpa.pk_')}} size={22} className="text-gray-400 hover:text-[#0145f2] cursor-pointer transition-colors" />
+                    <Facebook onClick={()=>{router.push('https://www.facebook.com/profile.php?id=61586042726467')}} size={22} className="text-gray-400 hover:text-[#0145f2] cursor-pointer transition-colors" />
                   </div>
                   <p className="text-[9px] font-black text-gray-400 tracking-[0.4em] uppercase">Pakistan's Premium Authorised Sneaker Store</p>
                 </div>

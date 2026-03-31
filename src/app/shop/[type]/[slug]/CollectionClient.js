@@ -265,7 +265,7 @@ export default function CollectionClient({ type, slug }) {
                 {brand} Shoes
               </Link>
             ))}
-            {['Running', 'Casual', 'Sports', 'Lifestyle'].map((cat) => (
+            {['Running', 'Casual', 'Sports'].map((cat) => (
               <Link 
                 key={cat} 
                 href={`/shop/category/${cat.toLowerCase()}shoes`}

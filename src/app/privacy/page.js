@@ -22,7 +22,7 @@ const PrivacyPolicy = () => {
             Privacy <br /> <span className="text-black/40 italic font-light">Policy</span>
           </h1>
           <p className="text-gray-500 text-lg font-light max-w-2xl leading-relaxed">
-            Your trust is our most valuable asset. This policy outlines our commitment to protecting your digital footprint while you experience Rock Climb.
+            Your trust is our most valuable asset. This policy outlines our commitment to protecting your digital footprint while you experience Scarpa.
           </p>
         </div>
 
