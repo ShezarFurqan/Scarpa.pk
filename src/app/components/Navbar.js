@@ -72,6 +72,13 @@ export default function Navbar() {
 
   if (pathname.includes("/admin")) return null;
 
+  useEffect(() => {
+    setIsSidebarOpen(false);
+    setIsMobileSearchOpen(false);
+    setIsLoginOpen(false);
+    setSearchQuery("");
+  }, [pathname]);
+
   return (
     <div className="relative mb-24 sm:mb-12">
       <nav className="w-full bg-[#0145f2] fixed top-0 left-0 z-[100] flex flex-row items-center justify-between px-6 lg:px-12 h-20 shadow-xl">
@@ -253,7 +260,7 @@ export default function Navbar() {
                         {openSubMenu === 'brands' && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ willChange: "height, opacity" }} className="overflow-hidden">
                             <div className="grid grid-cols-2 gap-2.5 mt-5 pb-2">
-                              {brands.map(brand => <Link key={brand} href={`/shop/brand/${brand}`} className="bg-white py-4 rounded-2xl text-[11px] font-[900] text-center text-gray-800 border border-gray-100 hover:border-[#0145f2] transition-colors uppercase">{brand}</Link>)}
+                              {brands.map(brand => <Link key={brand} href={`/shop/brand/${brand.toLocaleLowerCase().replace(" ", "")}`} className="bg-white py-4 rounded-2xl text-[11px] font-[900] text-center text-gray-800 border border-gray-100 hover:border-[#0145f2] transition-colors uppercase">{brand}</Link>)}
                             </div>
                           </motion.div>
                         )}
