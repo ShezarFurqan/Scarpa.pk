@@ -31,8 +31,6 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} bg-[#edf1f5] ${geistMono.variable} antialiased`}
       >
-        import Script from "next/script";
-
         <Script
           id="fb-pixel"
           strategy="afterInteractive"
