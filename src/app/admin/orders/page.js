@@ -7,7 +7,7 @@ import {
   doc, updateDoc, deleteDoc, addDoc, getDocs, serverTimestamp
 } from 'firebase/firestore'
 import {
-  Search, Trash2, MapPin, Phone, Package, ChevronDown,
+  Search, Trash2, MapPin, Phone,  MapPinIcon, Package, ChevronDown,
   Loader2, Mail, Plus, X, Globe, User, 
   TrendingUp, Wallet, BarChart3, Tag, Receipt, ShoppingBag
 } from 'lucide-react'
@@ -342,6 +342,8 @@ function OrderRow({ order, expanded, onToggle, onStatusChange, onDelete }) {
                  <div className="space-y-3 bg-white/[0.03] p-5 rounded-2xl border border-white/5">
                     <DetailItem icon={<User size={14}/>} label="Full Name" value={customer.fullName || "Walk-In Buyer"} />
                     <DetailItem icon={<Phone size={14}/>} label="Phone" value={customer.phone || "Not Available"} />
+                    <DetailItem icon={<Phone size={14}/>} label="Phone 2" value={customer.phone2 || "Not Available"} />
+                    <DetailItem icon={<MapPinIcon size={14}/>} label="Postal Code" value={customer.postalCode || "Not Available"} />
                     <DetailItem icon={<Mail size={14}/>} label="Email" value={customer.email || "Not Available"} />
                     <DetailItem icon={<MapPin size={14}/>} label="Address" value={customer.address || "No Shipping Address"} />
                  </div>

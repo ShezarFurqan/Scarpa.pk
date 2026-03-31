@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const { cart, token, setCart, ShippingFee } = useContext(ShopContext);
 
   const [formData, setFormData] = useState({
-    fullName: '', phone: '', phone2: '', email: '', city: '', area: '', address: '', notes: ''
+    fullName: '', phone: '', phone2: '', postalCode : '', email: '', city: '', area: '', address: '', notes: ''
   });
 
   const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -128,7 +128,7 @@ export default function CheckoutPage() {
   if (isSuccess) {
     if (typeof window !== "undefined" && window.fbq) {
       window.fbq('track', 'Purchase', {
-        value: totalAmount,
+        value: total,
         currency: 'PKR'
       });
     }
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
 
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0145f2] ml-1">Postal code (Optional)</label>
-                  <input name="postal" type="number" value={formData.postal} onChange={handleInput} placeholder="75300" className="w-full bg-[#edf1f5] border-2 border-[#edf1f5] rounded-2xl p-4 text-sm font-bold focus:outline-none focus:border-[#0145f2] transition-all" />
+                  <input name="postalCode" type="number" value={formData.postalCode} onChange={handleInput} placeholder="75300" className="w-full bg-[#edf1f5] border-2 border-[#edf1f5] rounded-2xl p-4 text-sm font-bold focus:outline-none focus:border-[#0145f2] transition-all" />
                 </div>
 
                 <div className="md:col-span-2 space-y-3">
