@@ -88,13 +88,7 @@ const RelatedProducts = ({ currentProduct, allProducts }) => {
           {recommendations.map((product) => (
             <div key={product.id} className="group transition-transform duration-500 hover:-translate-y-2">
               <ProductCard
-                productId={product.id}
-                title={product.title}
-                price={product.price}
-                fakePrice={product.fakePrice}
-                quantity={product.qty}
-                size={product.sizes[0]}
-                image={product.images?.[0] || product.image}
+                product={product}
                 className="bg-white rounded-[2.5rem] shadow-sm border border-white hover:shadow-[0_30px_60px_-15px_rgba(1,69,242,0.1)] transition-all duration-500"
               />
             </div>

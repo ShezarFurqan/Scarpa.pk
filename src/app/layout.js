@@ -4,7 +4,6 @@ import "./globals.css";
 import ShopContextProvider from "./Context/ShopContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import { BrowserRouter } from "react-router-dom";
 import Providers from "./providers";
 import { LoadingProvider } from './Context/LoginContext';
 import Script from "next/script";
@@ -28,6 +27,9 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
+
+
+
       <body
         className={`${geistSans.variable} bg-[#edf1f5] ${geistMono.variable} antialiased`}
       >
@@ -54,6 +56,11 @@ export default function RootLayout({ children }) {
     `,
           }}
         />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
         <Providers>
           <LoadingProvider>
             <ShopContextProvider>

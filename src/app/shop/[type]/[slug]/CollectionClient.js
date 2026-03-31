@@ -110,30 +110,30 @@ export default function CollectionClient({ type, slug }) {
               <span className="px-3 py-1 bg-[#0145f2] text-white text-[9px] font-black uppercase tracking-widest rounded-full mb-4 inline-block">
                 {type}
               </span>
-              
+
               <h1 className="text-5xl md:text-8xl font-[1000] uppercase tracking-tighter leading-[0.85] text-gray-900">
                 {formattedTitle}<span className="text-[#0145f2]">.</span>
               </h1>
-              
+
               {/* SEO Content: Intro Section */}
               <div className="mt-6 space-y-4 max-w-2xl">
                 <p className="text-gray-500 text-sm font-medium leading-relaxed">
-                  Discover the latest <strong className="text-gray-900">{formattedTitle}</strong> trends at Scarpa.pk. From professional performance gear to high-end street style, our curated selection brings you the best of global footwear brands directly to your doorstep in Pakistan.
+                  {type?.toLowerCase().includes('categor') ? (
+                    <>Explore our exclusive <strong className="text-gray-900">{formattedTitle}</strong> range at Scarpa.pk. Find the perfect pair tailored to your lifestyle, whether you're looking for professional performance gear or high-end street style in Pakistan.</>
+                  ) : type?.toLowerCase().includes('brand') ? (
+                    <>Shop authentic <strong className="text-gray-900">{formattedTitle}</strong> footwear at Scarpa.pk. Experience premium quality, signature designs, and the unmatched comfort of your favorite global brand delivered right to your doorstep.</>
+                  ) : type?.toLowerCase().includes('condition') ? (
+                    <>Browse our <strong className="text-gray-900">{formattedTitle}</strong> footwear selection at Scarpa.pk. We transparently grade every pair, ensuring you get exactly what you expect with uncompromised authenticity and supreme value.</>
+                  ) : type?.toLowerCase().includes('return') ? (
+                    <>Discover incredible value with our <strong className="text-gray-900">{formattedTitle}</strong> inventory at Scarpa.pk. These are 100% authentic, thoroughly quality-checked pairs offering premium footwear at unbeatable discounted prices.</>
+                  ) : (
+                    <>Discover the latest <strong className="text-gray-900">{formattedTitle}</strong> trends at Scarpa.pk. From professional performance gear to high-end street style, our curated selection brings you the best of global footwear brands directly to your doorstep in Pakistan.</>
+                  )}
                 </p>
                 <div className="flex gap-4 text-[10px] font-black uppercase tracking-widest text-[#0145f2]">
-                  <span className="flex items-center gap-1"><ShieldCheck size={12}/> 100% Original Brands</span>
-                  <span className="flex items-center gap-1"><Truck size={12}/> Fast Nationwide Delivery</span>
+                  <span className="flex items-center gap-1"><ShieldCheck size={12} /> 100% Original Brands</span>
+                  <span className="flex items-center gap-1"><Truck size={12} /> Fast Nationwide Delivery</span>
                 </div>
-              </div>
-            </div>
-            
-            <div className="bg-white px-6 py-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Available Units</p>
-                <p className="text-2xl font-[1000] text-[#0145f2] leading-none mt-1">{filteredProducts.length}</p>
-              </div>
-              <div className="w-10 h-10 bg-[#edf1f5] rounded-2xl flex items-center justify-center">
-                <Package className="text-[#0145f2]" size={20} />
               </div>
             </div>
           </div>
@@ -201,14 +201,8 @@ export default function CollectionClient({ type, slug }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
             {filteredProducts.map((product) => (
               <ProductCard
-                size={product.sizes?.[0]}
                 key={product.id}
-                quantity={Number(product.qty)}
-                fakePrice={product.fakePrice}
-                productId={product.id}
-                title={product.title}
-                price={product.price}
-                image={product?.images?.[0] || product.image}
+                product={product}
               />
             ))}
           </div>
@@ -257,8 +251,8 @@ export default function CollectionClient({ type, slug }) {
           <h2 className="text-2xl font-[900] uppercase tracking-tighter text-gray-900 mb-8">Explore More Collections</h2>
           <div className="flex gap-4 flex-wrap">
             {['Nike', 'Adidas', 'New Balance', 'Puma'].map((brand) => (
-              <Link 
-                key={brand} 
+              <Link
+                key={brand}
                 href={`/shop/brand/${brand.toLowerCase().replace(' ', '')}`}
                 className="bg-white px-6 py-3 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[#0145f2] hover:border-[#0145f2] transition-colors shadow-sm"
               >
@@ -266,8 +260,8 @@ export default function CollectionClient({ type, slug }) {
               </Link>
             ))}
             {['Running', 'Casual', 'Sports'].map((cat) => (
-              <Link 
-                key={cat} 
+              <Link
+                key={cat}
                 href={`/shop/category/${cat.toLowerCase()}shoes`}
                 className="bg-white px-6 py-3 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[#0145f2] hover:border-[#0145f2] transition-colors shadow-sm"
               >

@@ -147,15 +147,7 @@ const ProductsCollection = ({ collectionName }) => {
                 key={product.id}
               >
                 <ProductCard
-                  brand={product.brand}
-                  fakePrice={product.fakePrice}
-                  size={product.sizes ? product.sizes[0] : ''}
-                  product={product}
-                  quantity={Number(product.qty)}
-                  title={product.title}
-                  price={product.price}
-                  productId={product.id}
-                  image={product.images ? product.images[0] : ''}
+                product={product}
                 />
               </motion.div>
             ))
