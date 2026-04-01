@@ -195,15 +195,15 @@ export default function ProfilePage() {
                                     <div 
                                         key={order.id} 
                                         className="bg-white border border-gray-50 shadow-[0_10px_40px_rgba(0,0,0,0.02)] rounded-[2rem] p-6 md:p-8 hover:shadow-xl hover:border-[#0145f2]/20 transition-all group cursor-pointer"
-                                        onClick={() => router.push(`/orders?id=${order.id}`)}
+                                        // onClick={() => router.push(`/orders?id=${order.id}`)}
                                     >
                                         <div className="flex flex-col md:flex-row justify-between gap-6">
                                             <div className="flex-1 space-y-4">
                                                 <div className="flex items-center gap-4">
                                                     <span className="bg-[#edf1f5] px-3 py-1 rounded-full font-black text-[10px] text-[#0145f2] tracking-widest uppercase">
-                                                        ID: {order.id.slice(-8)}
+                                                        ID: {order.id}
                                                     </span>
-                                                    <StatusBadge status={order.orderStatus} />
+                                                    <StatusBadge status={order.status} />
                                                 </div>
                                                 
                                                 {/* Images List */}

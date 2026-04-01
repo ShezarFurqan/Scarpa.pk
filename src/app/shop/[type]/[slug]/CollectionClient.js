@@ -136,6 +136,8 @@ export default function CollectionClient({ type, slug }) {
                 </div>
               </div>
             </div>
+
+
           </div>
         </div>
 

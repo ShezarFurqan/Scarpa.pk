@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  Plus, Search, FolderPlus, Edit3, Trash2, ChevronRight,
+  Plus, Search, Package, FolderPlus, Edit3, Trash2, ChevronRight,
   ArrowLeft, Image as ImageIcon, Tag, Filter, Loader2, X, Eye, EyeOff
 } from 'lucide-react'
 import {
@@ -305,14 +305,22 @@ export default function ProductManagement() {
           </div>
           <p className="text-gray-500 text-sm">{view === 'collections' ? 'Manage departments.' : `Managing ${activeCol?.name}`}</p>
         </div>
-        <button
-          onClick={() => view === 'collections' ? setIsCollectionModalOpen(true) : setIsProductModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gray-200"
-          disabled={loading}
-        >
-          {loading ? <Loader2 className="animate-spin" size={16} /> : (view === 'collections' ? <FolderPlus size={16} /> : <Plus size={16} />)}
-          {view === 'collections' ? 'New Collection' : 'Add Product'}
-        </button>
+        <div className='flex gap-4 '>
+          {view === 'products' && 
+            <div className="flex items-center gap-2 px-6 py-3 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gray-200">
+              <Package size={16} />
+              {filteredProducts?.length} Products
+            </div>
+          }
+          <button
+            onClick={() => view === 'collections' ? setIsCollectionModalOpen(true) : setIsProductModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gray-200"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="animate-spin" size={16} /> : (view === 'collections' ? <FolderPlus size={16} /> : <Plus size={16} />)}
+            {view === 'collections' ? 'New Collection' : 'Add Product'}
+          </button>
+        </div>
       </div>
 
       {/* COLLECTIONS GRID */}
