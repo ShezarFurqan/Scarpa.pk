@@ -69,7 +69,7 @@ export default function CartPage() {
                     <h3 className="text-xl font-black uppercase tracking-tight text-gray-900">{item.title}</h3>
                     <p className="inline-block bg-[#edf1f5] text-[#0145f2] text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg mt-2">Size: {item.size}</p>
                   </div>
-                  <p className="font-black text-2xl text-gray-900 tracking-tighter">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-black text-2xl text-gray-900 tracking-tighter">Rs.{(item.price * item.quantity).toFixed(2)}</p>
                 </div>
 
                 <div className="flex items-center justify-between mt-8">
