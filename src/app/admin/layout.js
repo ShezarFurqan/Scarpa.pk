@@ -13,7 +13,8 @@ import {
   Bell,
   Search,
   SquarePen,
-  MessageCircleMore
+  MessageCircleMore,
+  Star
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { name: 'DirectContact', href: '/admin/directcontacts', icon: Users },
   { name: 'Customization', href: '/admin/customization', icon: SquarePen },
   { name: 'Direct Messages', href: '/admin/messages', icon: MessageCircleMore },
+  { name: 'Reviews', href: '/admin/reviews', icon: Star },
 ]
 
 export default function AdminLayout({ children }) {

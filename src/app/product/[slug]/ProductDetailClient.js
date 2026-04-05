@@ -1,46 +1,48 @@
 // app/product/[slug]/ProductDetailClient.js
 'use client'
-import React, { useState, useContext, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useContext, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
     Star, Plus, Minus, ShoppingBag, Zap,
     CheckCircle2, ShieldCheck, Truck,
-    Info, HelpCircle
+    Info, HelpCircle, Loader2
 } from 'lucide-react'
 import { ShopContext } from '@/app/Context/ShopContext';
 import { db } from '../../firebase';
 import {
     collection, addDoc, query, where,
-    onSnapshot, serverTimestamp
+    serverTimestamp, orderBy, limit, startAfter, getDocs
 } from 'firebase/firestore';
 import LoginDrawer from "../../components/login";
 import RelatedProducts from '@/app/components/RelatedProducts';
 import ProductChat from '@/app/components/ProductChat';
 import Image from 'next/image';
 
-// 1. Yahan prop ko { productId } se { product } kar diya hai
 export default function ProductDetailClient({ product }) {
     const { products, addToCart, router } = useContext(ShopContext);
 
     const [activeTab, setActiveTab] = useState('description');
     const [isLoginOpen, setIsLoginOpen] = useState(false);
-    // 2. product ka local state remove kar diya hai kyunki ab wo directly prop se aa raha hai
     const [selectedImage, setSelectedImage] = useState(0);
     const [selectedSize, setSelectedSize] = useState(null);
     const [quantity, setQuantity] = useState(1);
-    const [reviews, setReviews] = useState([]);
     const [error, setError] = useState("");
     const [open, setOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+
+    // Reviews State
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMoreReviews, setHasMoreReviews] = useState(true);
+    const [averageRating, setAverageRating] = useState(5);
 
     const [newReview, setNewReview] = useState({ name: "", email: "", rating: 5, comment: "" });
 
     const imgRef = useRef(null);
     const [zoom, setZoom] = useState({ x: 50, y: 50, show: false });
 
-    // Ab id prop wale product se lenge
     const productId = product?.id;
-
-    // Optimization: Use memo for derived state
     const isOutOfStock = useMemo(() => product?.qty <= 0, [product?.qty]);
 
     const handleMove = (e) => {
@@ -51,21 +53,77 @@ export default function ProductDetailClient({ product }) {
         setZoom({ x, y, show: true });
     };
 
-    // 3. Purana ShopContext wala useEffect remove kar diya aur uski jagah sirf size select karne wala logic rakha hai
     useEffect(() => {
         if (product && product.sizes?.length === 1) {
             setSelectedSize(product.sizes[0]);
         }
     }, [product]);
 
-    useEffect(() => {
+    // Fetch Current Product Average Rating
+    const fetchProductRating = useCallback(async () => {
         if (!productId) return;
-        const q = query(collection(db, "productReviews"), where("productId", "==", productId));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setReviews(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
-        return () => unsubscribe();
+        try {
+            const q = query(collection(db, "productReviews"), where("productId", "==", productId));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                const total = snapshot.docs.reduce((acc, doc) => acc + doc.data().rating, 0);
+                setAverageRating(Number((total / snapshot.size).toFixed(1)));
+            }
+        } catch (err) {
+            console.error("Error fetching product rating:", err);
+        }
     }, [productId]);
+
+    // Fetch All Website Reviews
+    const fetchReviews = useCallback(async (isLoadMore = false) => {
+        try {
+            if (isLoadMore) {
+                setLoadingMore(true);
+            } else {
+                setLoadingReviews(true);
+                setReviews([]);
+            }
+
+            const reviewsRef = collection(db, "productReviews");
+            let q;
+
+            if (isLoadMore && lastVisible) {
+                q = query(reviewsRef, orderBy("createdAt", "desc"), startAfter(lastVisible), limit(10));
+            } else {
+                q = query(reviewsRef, orderBy("createdAt", "desc"), limit(10));
+            }
+
+            const querySnapshot = await getDocs(q);
+            const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (docs.length > 0) {
+                setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+                if (isLoadMore) {
+                    setReviews(prev => [...prev, ...docs]);
+                } else {
+                    setReviews(docs);
+                }
+            }
+            
+            setHasMoreReviews(docs.length === 10);
+        } catch (err) {
+            console.error("Error fetching reviews:", err);
+        } finally {
+            setLoadingReviews(false);
+            setLoadingMore(false);
+        }
+    }, [lastVisible]);
+
+    useEffect(() => {
+        fetchProductRating();
+    }, [fetchProductRating]);
+
+    useEffect(() => {
+        setLastVisible(null);
+        setHasMoreReviews(true);
+        fetchReviews(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Only fetch full list once on mount
 
     const handleAddToCart = () => {
         if (!selectedSize) {
@@ -110,13 +168,15 @@ export default function ProductDetailClient({ product }) {
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
             });
             setNewReview({ name: "", email: "", rating: 5, comment: "" });
-            alert("Thank you for your review!");
+            
+            // Refresh reviews feed and product average rating
+            fetchReviews(false);
+            fetchProductRating();
         } catch (err) {
             console.error("Error adding review: ", err);
         }
     };
 
-    // 4. Loading spinner remove kar diya kyunke Server Component pehle hi load karke deta hai
     if (!product) return null;
 
     const StarRating = ({ rating, size = 16, interactive = false }) => (
@@ -133,10 +193,6 @@ export default function ProductDetailClient({ product }) {
             ))}
         </div>
     );
-
-    useEffect(() => {
-        console.log(open)
-    }, [open])
 
     return (
         <div className="min-h-screen text-gray-800 font-sans selection:bg-gray-200 selection:text-black overflow-x-hidden">
@@ -212,8 +268,8 @@ export default function ProductDetailClient({ product }) {
                             </div>
                             <div className="flex items-center gap-3 pt-1 flex-wrap">
                                 <div className="flex items-center gap-2">
-                                    <StarRating rating={product.rating || 5} size={14} />
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{reviews.length} Feedbacks</span>
+                                    <StarRating rating={averageRating} size={14} />
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{averageRating} / 5</span>
                                 </div>
                                 <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 bg-gray-100 px-2 py-0.5 rounded-sm border border-gray-200">
@@ -333,31 +389,66 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                     </div>
                 </div>
 
-                {/* REVIEWS */}
+                {/* OPTIMIZED REVIEWS SECTION */}
                 <div className="mt-24 border-t border-gray-100 pt-12 md:pt-20 w-full">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
                         <div className="lg:col-span-7 space-y-8">
-                            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+                            
+                            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
                                 <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-gray-900 italic">Feedback</h2>
-                                <span className="text-xs font-black text-gray-300 uppercase tracking-widest">{reviews.length} Customer Reviews</span>
                             </div>
-                            <div className="space-y-6">
-                                {reviews.length > 0 ? reviews.map((r) => (
-                                    <div key={r.id} className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-50 shadow-sm w-full">
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center font-bold text-white text-xs uppercase">{r.user?.charAt(0)}</div>
-                                                <div>
-                                                    <p className="text-[11px] font-black uppercase tracking-widest text-gray-900">{r.user}</p>
-                                                    <div className="flex gap-0.5 mt-1">{[...Array(r.rating)].map((_, i) => <div key={i} className="w-1.5 h-1.5 rounded-full bg-black" />)}</div>
+
+                            {/* Reviews List (All Reviews Feed) */}
+                            <div className="space-y-6 pt-4">
+                                {loadingReviews ? (
+                                    // Skeletons
+                                    [...Array(3)].map((_, i) => (
+                                        <div key={i} className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-50 shadow-sm w-full animate-pulse">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="w-10 h-10 rounded-full bg-gray-200" />
+                                                <div className="space-y-2">
+                                                    <div className="h-3 w-20 bg-gray-200 rounded" />
+                                                    <div className="h-2 w-16 bg-gray-200 rounded" />
                                                 </div>
                                             </div>
-                                            <span className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">{r.date}</span>
+                                            <div className="h-4 w-full bg-gray-200 rounded mb-2" />
+                                            <div className="h-4 w-2/3 bg-gray-200 rounded" />
                                         </div>
-                                        <p className="text-gray-600 italic font-medium text-base md:text-lg">"{r.comment}"</p>
-                                    </div>
-                                )) : (
-                                    <div className="bg-gray-50 p-12 rounded-[2rem] text-center border-2 border-dashed border-gray-200 w-full">
+                                    ))
+                                ) : reviews.length > 0 ? (
+                                    <>
+                                        {reviews.map((r) => (
+                                            <div key={r.id} className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-50 shadow-sm w-full transition-all duration-300 hover:shadow-md animate-in fade-in slide-in-from-bottom-4">
+                                                <div className="flex justify-between items-start mb-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center font-bold text-white text-xs uppercase shadow-sm">
+                                                            {r.user?.charAt(0) || "A"}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[11px] font-black uppercase tracking-widest text-gray-900">{r.user || "Anonymous"}</p>
+                                                            <div className="flex gap-0.5 mt-1">
+                                                                <StarRating rating={r.rating || 5} size={12} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-md">{r.date}</span>
+                                                </div>
+                                                <p className="text-gray-600 italic font-medium text-base md:text-lg leading-relaxed">"{r.comment}"</p>
+                                            </div>
+                                        ))}
+
+                                        {hasMoreReviews && (
+                                            <button 
+                                                onClick={() => fetchReviews(true)}
+                                                disabled={loadingMore}
+                                                className="w-full bg-white border-2 border-gray-100 text-gray-900 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:border-black transition-all active:scale-95 shadow-sm flex items-center justify-center gap-2 mt-4"
+                                            >
+                                                {loadingMore ? <Loader2 className="animate-spin" size={16} /> : "Load More Reviews"}
+                                            </button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="bg-gray-50 p-12 rounded-[2rem] text-center border-2 border-dashed border-gray-200 w-full animate-in fade-in">
                                         <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No feedback yet</p>
                                     </div>
                                 )}
@@ -372,7 +463,9 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2">We'd love to hear from you</p>
                                     </div>
                                     <form onSubmit={handleAddReview} className="space-y-5 w-full">
-                                        <div className="flex justify-center bg-gray-50 py-6 rounded-2xl border border-gray-100"><StarRating rating={newReview.rating} size={28} interactive /></div>
+                                        <div className="flex justify-center bg-gray-50 py-6 rounded-2xl border border-gray-100">
+                                            <StarRating rating={newReview.rating} size={28} interactive />
+                                        </div>
                                         <input type="text" placeholder="DISPLAY NAME" required value={newReview.name} onChange={(e) => setNewReview({ ...newReview, name: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-black/5" />
                                         <input type="email" placeholder="YOUR EMAIL" required value={newReview.email} onChange={(e) => setNewReview({ ...newReview, email: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-black/5" />
                                         <textarea placeholder="WHAT DID YOU THINK?" rows={4} required value={newReview.comment} onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })} className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-xs font-bold outline-none focus:ring-2 focus:ring-black/5 resize-none" />
