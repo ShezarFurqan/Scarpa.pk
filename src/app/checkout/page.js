@@ -111,6 +111,27 @@ export default function CheckoutPage() {
       await Promise.all(updatePromises);
       // END OF PRODUCT QUANTITY UPDATE
 
+      // --- FACEBOOK PIXEL TRACKING EVENT ---
+      if (typeof window !== "undefined" && window.fbq) {
+        window.fbq('track', 'Purchase', {
+          value: total,
+          currency: 'PKR',
+          content_type: 'product',
+          content_ids: cart.map(item => item.id || 'unknown'),
+          contents: cart.map(item => ({
+            id: item.id || 'unknown',
+            quantity: item.quantity,
+            item_price: item.price
+          })),
+          num_items: cart.reduce((acc, item) => acc + (item.quantity || 1), 0),
+          order_id: docRef.id,
+          shipping_fee: shipping,
+          subtotal: subtotal,
+          payment_method: 'cod'
+        });
+      }
+      // --------------------------------------
+
       setOrderId(docRef.id);
       setIsSuccess(true);
       setCart([]);
@@ -126,12 +147,6 @@ export default function CheckoutPage() {
 
   // --- SUCCESS VIEW ---
   if (isSuccess) {
-    if (typeof window !== "undefined" && window.fbq) {
-      window.fbq('track', 'Purchase', {
-        value: total,
-        currency: 'PKR'
-      });
-    }
     return (
       <div className="min-h-screen bg-[#edf1f5] text-gray-900 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-28 h-28 bg-white text-[#0145f2] rounded-[2.5rem] shadow-xl shadow-[#0145f2]/10 flex items-center justify-center mb-8 animate-bounce">
