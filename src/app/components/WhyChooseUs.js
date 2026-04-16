@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { Truck, RotateCcw, ShieldCheck, CreditCard } from 'lucide-react';
-import { motion } from 'framer-motion'; // Animation library
+import { motion } from 'framer-motion';
 
 /**
  * WhyChooseUs Section
@@ -11,23 +11,23 @@ const WhyChooseUs = () => {
   const features = [
     {
       icon: <Truck className="w-6 h-6 lg:w-7 lg:h-7" />,
-      title: "Fast & Reliable Delivery",
-      description: "Get your shoes delivered quickly and safely anywhere in Pakistan. Track your order in real-time.",
-    },
-    {
-      icon: <RotateCcw className="w-6 h-6 lg:w-7 lg:h-7" />,
-      title: "48-Hour Returns",
-      description: "Found a defect? Return or exchange your shoes within 48 hours, no questions asked.",
-    },
-    {
-      icon: <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7" />,
-      title: "Premium Quality Assurance",
-      description: "All products are carefully checked to ensure top-notch quality and long-lasting comfort.",
+      title: "Ships in 24hrs",
+      description: "Your order is processed and dispatched within 24 hours of confirmation.",
     },
     {
       icon: <CreditCard className="w-6 h-6 lg:w-7 lg:h-7" />,
-      title: "Secure Payments",
-      description: "Pay with confidence using encrypted transactions, supporting multiple payment methods.",
+      title: "COD Available",
+      description: "Pay conveniently with Cash on Delivery anywhere in Pakistan.",
+    },
+    {
+      icon: <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7" />,
+      title: "100% Original",
+      description: "Authentic sneakers guaranteed with strict premium quality assurance.",
+    },
+    {
+      icon: <RotateCcw className="w-6 h-6 lg:w-7 lg:h-7" />,
+      title: "7-Day Return",
+      description: "Not satisfied? Return or exchange easily within 7 days, no hassle.",
     },
   ];
 
@@ -116,6 +116,19 @@ const WhyChooseUs = () => {
             </motion.div>
           ))}
         </div>
+
+        {/* Delivery Estimate */}
+        <motion.div 
+          variants={itemVariants}
+          className="mt-12 lg:mt-16 text-center"
+        >
+          <div className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-white border border-[#0145f2]/10 shadow-sm">
+            <Truck className="w-5 h-5 text-[#0145f2]" />
+            <span className="text-gray-700 font-bold text-sm sm:text-base">
+              Estimated delivery: <span className="text-[#0145f2]">3–5 days to your city</span>
+            </span>
+          </div>
+        </motion.div>
 
       </div>
     </motion.section>

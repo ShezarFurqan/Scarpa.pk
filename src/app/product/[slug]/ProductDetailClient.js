@@ -4,7 +4,7 @@ import React, { useState, useContext, useEffect, useRef, useMemo, useCallback } 
 import {
     Star, Plus, Minus, ShoppingBag, Zap,
     CheckCircle2, ShieldCheck, Truck,
-    Info, HelpCircle, Loader2
+    Info, HelpCircle, Loader2, MessageCircle
 } from 'lucide-react'
 import { ShopContext } from '@/app/Context/ShopContext';
 import { db } from '../../firebase';
@@ -28,6 +28,7 @@ export default function ProductDetailClient({ product }) {
     const [error, setError] = useState("");
     const [open, setOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [isFabOpen, setIsFabOpen] = useState(false); // New state for Smart Floating Button
 
     // Reviews State
     const [reviews, setReviews] = useState([]);
@@ -45,6 +46,12 @@ export default function ProductDetailClient({ product }) {
     const productId = product?.id;
     const isOutOfStock = useMemo(() => product?.qty <= 0, [product?.qty]);
 
+    // Savings Calculation
+    const currentPrice = Number(product?.price || 0);
+    const originalPrice = Number(product?.fakePrice || 0);
+    const savingsAmount = originalPrice > currentPrice ? originalPrice - currentPrice : 0;
+    const savingsPercentage = originalPrice > currentPrice ? Math.round((savingsAmount / originalPrice) * 100) : 0;
+
     const handleMove = (e) => {
         if (!imgRef.current) return;
         const rect = imgRef.current.getBoundingClientRect();
@@ -59,7 +66,6 @@ export default function ProductDetailClient({ product }) {
         }
     }, [product]);
 
-    // Fetch Current Product Average Rating
     const fetchProductRating = useCallback(async () => {
         if (!productId) return;
         try {
@@ -74,7 +80,6 @@ export default function ProductDetailClient({ product }) {
         }
     }, [productId]);
 
-    // Fetch All Website Reviews
     const fetchReviews = useCallback(async (isLoadMore = false) => {
         try {
             if (isLoadMore) {
@@ -123,7 +128,7 @@ export default function ProductDetailClient({ product }) {
         setHasMoreReviews(true);
         fetchReviews(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Only fetch full list once on mount
+    }, []);
 
     const handleAddToCart = () => {
         if (!selectedSize) {
@@ -168,8 +173,6 @@ export default function ProductDetailClient({ product }) {
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
             });
             setNewReview({ name: "", email: "", rating: 5, comment: "" });
-
-            // Refresh reviews feed and product average rating
             fetchReviews(false);
             fetchProductRating();
         } catch (err) {
@@ -193,6 +196,9 @@ export default function ProductDetailClient({ product }) {
             ))}
         </div>
     );
+
+    // Dynamic WhatsApp Link
+    const waLink = `https://wa.me/923112632505?text=${encodeURIComponent(`Hi! I want to ask about this shoe: ${product.title}`)}`;
 
     return (
         <div className="min-h-screen text-gray-800 font-sans selection:bg-gray-200 selection:text-black overflow-x-hidden">
@@ -262,11 +268,21 @@ export default function ProductDetailClient({ product }) {
                             <h1 className="text-2xl sm:text-3xl md:text-4xl font-[800] leading-tight tracking-tighter text-gray-900 break-words">
                                 {product.title}
                             </h1>
-                            <div className="flex items-center gap-4 pt-2">
-                                <span className="text-2xl md:text-3xl font-black text-gray-900">Rs.{Number(product.price).toLocaleString()}</span>
-                                {product.fakePrice && <span className="text-lg text-gray-700 line-through font-bold">Rs.{Number(product.fakePrice).toLocaleString()}</span>}
+
+                            {/* Updated Price Section with Savings */}
+                            <div className="flex flex-col pt-2">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-2xl md:text-3xl font-black text-gray-900">Rs.{currentPrice.toLocaleString()}</span>
+                                    {originalPrice > currentPrice && <span className="text-lg text-gray-400 line-through font-bold">Rs.{originalPrice.toLocaleString()}</span>}
+                                </div>
+                                {savingsAmount > 0 && (
+                                    <div className="text-sm font-black text-[#25D366] mt-1.5 uppercase tracking-wide flex items-center gap-1.5 bg-green-50 w-fit px-2.5 py-1 rounded-md border border-green-100">
+                                        You save Rs.{savingsAmount.toLocaleString()} ({savingsPercentage}% off)
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center gap-3 pt-1 flex-wrap">
+
+                            <div className="flex items-center gap-3 pt-2 flex-wrap">
                                 <div className="flex items-center gap-2">
                                     <StarRating rating={averageRating} size={14} />
                                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{averageRating} / 5</span>
@@ -279,7 +295,6 @@ export default function ProductDetailClient({ product }) {
                         </div>
 
                         <div className="space-y-4">
-                            {/* PEHLE WALA CODE: Sizes aur Size Guide wala div */}
                             <div className="flex justify-between items-center">
                                 <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 gap-2 md:gap-3">
                                     {product.sizes?.map((size) => (
@@ -296,7 +311,6 @@ export default function ProductDetailClient({ product }) {
                                 <button onClick={() => router.push("/sizeguide")} className="text-[10px] font-bold text-gray-400 underline underline-offset-4 hover:text-black">Size Guide</button>
                             </div>
 
-                            {/* --- NEW RED BADGE SNIPPET (Yahan add karo) --- */}
                             {selectedSize && !isOutOfStock && (
                                 <div className="flex mt-1 animate-in fade-in duration-300">
                                     <span className="bg-red-50 text-red-600 border border-red-100 px-3 py-1.5 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
@@ -305,15 +319,9 @@ export default function ProductDetailClient({ product }) {
                                     </span>
                                 </div>
                             )}
-                            {/* ---------------------------------------------- */}
-
-                            {/* PEHLE WALA CODE: Error message */}
-                            {error && <div className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 animate-bounce"><Info size={12} /> {error}</div>}
 
                             {error && <div className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 animate-bounce"><Info size={12} /> {error}</div>}
                         </div>
-
-
 
                         <div className="space-y-3 pt-2 w-full">
                             {isOutOfStock ? (
@@ -329,9 +337,20 @@ export default function ProductDetailClient({ product }) {
                                     <button onClick={handleBuyItNow} className="w-full bg-black text-white h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all flex items-center justify-center gap-2 shadow-xl active:scale-95">
                                         <Zap size={16} fill="currentColor" /> Buy It Now
                                     </button>
+
+                                    {/* New Inline WhatsApp Button */}
+                                    <a
+                                        href={waLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full bg-[#25D366] text-white h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] hover:bg-[#20bd5a] transition-all flex items-center justify-center gap-2 shadow-xl active:scale-95"
+                                    >
+                                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" className="fill-current"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                        Ask on WhatsApp — reply in minutes
+                                    </a>
                                 </>
                             )}
-                            <button onClick={() => { setOpen(!open) }} className="w-full py-2 sm:py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-black group">
+                            <button onClick={() => { setOpen(!open); setIsOpen(!isOpen); }} className="w-full py-2 sm:py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-black group">
                                 <HelpCircle size={16} className="group-hover:rotate-12 transition-transform" /> Have a question? <span className="underline underline-offset-2">Ask Anything</span>
                             </button>
                         </div>
@@ -363,34 +382,8 @@ export default function ProductDetailClient({ product }) {
                     </div>
                     <div className="pt-8 text-left min-h-[120px]">
                         {activeTab === 'description' && <p className="whitespace-pre-wrap text-sm md:text-base text-gray-500 leading-relaxed font-medium">{product.description}</p>}
-                        {activeTab === 'condition' && <div className="whitespace-pre-wrap text-sm md:text-base text-gray-500 leading-relaxed font-medium">{`Condition Guide
-
-PREMIUM +
-
-Item is brand new and hasn't been worn before.
-
-PREMIUM
-
-Item is in almost brand-new condition.
-
-EXCELLENT
-
-Item has very little signs of wear.
-
-VERY GOOD
-
-Item has visible signs of wear and use.`}</div>}
-                        {activeTab === 'delivery' && <div className="whitespace-pre-wrap text-sm md:text-base text-gray-500 leading-relaxed font-medium">{`Facing size issues? Don't like the product? Wrong or defective product delivered?
-
-Don't worry! Scarpa.pk offers a 7-day hassle-free return policy. To qualify for a return or exchange, all items must be unworn, unused, and with product tag attached.
-
-Once we receive the product back as a return, we'll provide you with the full amount.
-
-For further assistance, please email us at:
-rockclimb.rc@gmail.com
-
-Quick Help:
-Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
+                        {activeTab === 'condition' && <div className="whitespace-pre-wrap text-sm md:text-base text-gray-500 leading-relaxed font-medium">{`Condition Guide\n\nPREMIUM +\nItem is brand new and hasn't been worn before.\n\nPREMIUM\nItem is in almost brand-new condition.\n\nEXCELLENT\nItem has very little signs of wear.\n\nVERY GOOD\nItem has visible signs of wear and use.`}</div>}
+                        {activeTab === 'delivery' && <div className="whitespace-pre-wrap text-sm md:text-base text-gray-500 leading-relaxed font-medium">{`Facing size issues? Don't like the product? Wrong or defective product delivered?\n\nDon't worry! Scarpa.pk offers a 7-day hassle-free return policy. To qualify for a return or exchange, all items must be unworn, unused, and with product tag attached.\n\nOnce we receive the product back as a return, we'll provide you with the full amount.\n\nFor further assistance, please email us at:\nrockclimb.rc@gmail.com\n\nQuick Help:\nCall us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                     </div>
                 </div>
 
@@ -404,15 +397,12 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                 <div className="mt-24 border-t border-gray-100 pt-12 md:pt-20 w-full">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
                         <div className="lg:col-span-7 space-y-8">
-
                             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
                                 <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-gray-900 italic">Feedback</h2>
                             </div>
 
-                            {/* Reviews List (All Reviews Feed) */}
                             <div className="space-y-6 pt-4">
                                 {loadingReviews ? (
-                                    // Skeletons
                                     [...Array(3)].map((_, i) => (
                                         <div key={i} className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-50 shadow-sm w-full animate-pulse">
                                             <div className="flex items-center gap-3 mb-6">
@@ -447,7 +437,6 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                                                 <p className="text-gray-600 italic font-medium text-base md:text-lg leading-relaxed">"{r.comment}"</p>
                                             </div>
                                         ))}
-
                                         {hasMoreReviews && (
                                             <button
                                                 onClick={() => fetchReviews(true)}
@@ -488,6 +477,19 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                     </div>
                 </div>
             </div>
+
+            <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+               
+
+                {/* Product Chat Button */}
+                <button
+                    onClick={() => { setOpen(true); setIsOpen(true); }}
+                    className="bg-[#0145f2] text-white p-4 rounded-full shadow-[0_10px_30px_rgba(1,69,242,0.3)] hover:scale-110 transition-transform active:scale-95 flex items-center justify-center"
+                >
+                    <MessageCircle size={24} />
+                </button>
+            </div>
+
             <LoginDrawer isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
             <ProductChat product={product} isOpen={isOpen} setIsOpen={setIsOpen} open={open} setOpen={setOpen} />
         </div>

@@ -4,6 +4,7 @@ import "./globals.css";
 import ShopContextProvider from "./Context/ShopContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import WhatsAppButton from './components/WhatsAppButton';
 import Providers from "./providers";
 import { LoadingProvider } from './Context/LoginContext';
 import Script from "next/script";
@@ -19,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Scarpa – Best Shoes Online in Pakistan",
+  title: "Scarpa – Original Imported Thrift Shoes | Nike Adidas Puma Pakistan",
   description: "Buy premium shoes online at Scarpa.pk – Fast delivery across Pakistan.",
 };
 
@@ -67,6 +68,7 @@ export default function RootLayout({ children }) {
               <Navbar />
               <div className="">
                 {children}
+                <WhatsAppButton />
               </div>
               <Footer />
             </ShopContextProvider>
