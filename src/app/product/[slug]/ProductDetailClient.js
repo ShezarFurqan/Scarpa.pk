@@ -104,7 +104,7 @@ export default function ProductDetailClient({ product }) {
                     setReviews(docs);
                 }
             }
-            
+
             setHasMoreReviews(docs.length === 10);
         } catch (err) {
             console.error("Error fetching reviews:", err);
@@ -168,7 +168,7 @@ export default function ProductDetailClient({ product }) {
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
             });
             setNewReview({ name: "", email: "", rating: 5, comment: "" });
-            
+
             // Refresh reviews feed and product average rating
             fetchReviews(false);
             fetchProductRating();
@@ -279,24 +279,41 @@ export default function ProductDetailClient({ product }) {
                         </div>
 
                         <div className="space-y-4">
+                            {/* PEHLE WALA CODE: Sizes aur Size Guide wala div */}
                             <div className="flex justify-between items-center">
-                                <span className="text-xs font-black uppercase tracking-widest text-gray-900">Select Size</span>
+                                <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 gap-2 md:gap-3">
+                                    {product.sizes?.map((size) => (
+                                        <button
+                                            key={size}
+                                            onClick={() => { setSelectedSize(size); setError(""); }}
+                                            className={`py-3 md:py-4 rounded-xl text-sm font-black transition-all duration-200 border-2 
+                    ${selectedSize === size ? 'bg-black text-white border-black shadow-lg scale-95' : 'bg-white text-black border-gray-100 hover:border-black'}`}
+                                        >
+                                            {size}
+                                        </button>
+                                    ))}
+                                </div>
                                 <button onClick={() => router.push("/sizeguide")} className="text-[10px] font-bold text-gray-400 underline underline-offset-4 hover:text-black">Size Guide</button>
                             </div>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 md:gap-3">
-                                {product.sizes?.map((size) => (
-                                    <button
-                                        key={size}
-                                        onClick={() => { setSelectedSize(size); setError(""); }}
-                                        className={`py-3 md:py-4 rounded-xl text-sm font-black transition-all duration-200 border-2 
-                    ${selectedSize === size ? 'bg-black text-white border-black shadow-lg scale-95' : 'bg-white text-black border-gray-100 hover:border-black'}`}
-                                    >
-                                        {size}
-                                    </button>
-                                ))}
-                            </div>
+
+                            {/* --- NEW RED BADGE SNIPPET (Yahan add karo) --- */}
+                            {selectedSize && !isOutOfStock && (
+                                <div className="flex mt-1 animate-in fade-in duration-300">
+                                    <span className="bg-red-50 text-red-600 border border-red-100 px-3 py-1.5 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                                        <Info size={12} strokeWidth={2.5} />
+                                        Only 1 pair available in this size
+                                    </span>
+                                </div>
+                            )}
+                            {/* ---------------------------------------------- */}
+
+                            {/* PEHLE WALA CODE: Error message */}
+                            {error && <div className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 animate-bounce"><Info size={12} /> {error}</div>}
+
                             {error && <div className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 animate-bounce"><Info size={12} /> {error}</div>}
                         </div>
+
+
 
                         <div className="space-y-3 pt-2 w-full">
                             {isOutOfStock ? (
@@ -305,16 +322,10 @@ export default function ProductDetailClient({ product }) {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="flex flex-row gap-2 sm:gap-3 w-full">
-                                        <div className="flex items-center bg-white rounded-2xl border border-gray-100 w-[100px] sm:w-32 flex-shrink-0 justify-between p-1 shadow-sm">
-                                            <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl"><Minus size={14} /></button>
-                                            <span className="font-black text-xs sm:text-sm text-gray-900">{quantity}</span>
-                                            <button onClick={() => setQuantity(prev => prev < product.qty ? prev + 1 : prev)} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl"><Plus size={14} /></button>
-                                        </div>
-                                        <button onClick={handleAddToCart} className="flex-1 bg-white text-black h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] hover:bg-gray-800 hover:text-white border-2 border-gray-100 transition-all flex items-center justify-center gap-2 active:scale-95">
-                                            <ShoppingBag size={16} /> Add To Bag
-                                        </button>
-                                    </div>
+                                    <button onClick={handleAddToCart} className="w-full bg-white text-black h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.1em] hover:bg-[#0145F2] hover:text-white border-2 border-gray-100 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                        <ShoppingBag size={16} /> Add To Bag
+                                    </button>
+
                                     <button onClick={handleBuyItNow} className="w-full bg-black text-white h-[48px] sm:h-14 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all flex items-center justify-center gap-2 shadow-xl active:scale-95">
                                         <Zap size={16} fill="currentColor" /> Buy It Now
                                     </button>
@@ -393,7 +404,7 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                 <div className="mt-24 border-t border-gray-100 pt-12 md:pt-20 w-full">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
                         <div className="lg:col-span-7 space-y-8">
-                            
+
                             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
                                 <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-gray-900 italic">Feedback</h2>
                             </div>
@@ -438,7 +449,7 @@ Call us at +92 311 2632505 (10AM to 9PM, Monday - Saturday)`}</div>}
                                         ))}
 
                                         {hasMoreReviews && (
-                                            <button 
+                                            <button
                                                 onClick={() => fetchReviews(true)}
                                                 disabled={loadingMore}
                                                 className="w-full bg-white border-2 border-gray-100 text-gray-900 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:border-black transition-all active:scale-95 shadow-sm flex items-center justify-center gap-2 mt-4"
